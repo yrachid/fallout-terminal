@@ -53,6 +53,9 @@ const run = ({ initialMemoryAddress, rows, columns}) => {
     [h(initialMemoryAddress + 6), c(60), c(61), c(62), c(63), c(64), c(65), c(66), c(67), c(68), c(69), c(70), c(71)],
   ]
 
+  const ROWS = terminalMatrix.length - 1;
+  const COLS = 11;
+
   for (let row = 0; row < terminalMatrix.length; row++) {
     const terminalLine = document.createElement('p');
     terminalLine.className = 'terminal-line';
@@ -67,39 +70,69 @@ const run = ({ initialMemoryAddress, rows, columns}) => {
   document.onkeydown = function(e) {
     const event = e || window.event;
 
-    const currentColumn = document.activeElement;
+    const activeColumn = document.activeElement;
 
-    if (!currentColumn.id || !currentColumn.id.includes('column')) {
-      const nextItem = document.querySelector('#column-0');
-      nextItem.focus();
+    if (!activeColumn.id || !activeColumn.id.includes('column')) {
+      terminalMatrix[0][1].focus();
       return;
     }
 
-    const currentIndex = parseInt(currentColumn.id.split('-')[1]);
+    const currentIndex = parseInt(activeColumn.id.split('-')[1]);
+    const currentRow = parseInt(currentIndex / 12);
+    const currentColumn = (currentIndex % 12) + 1;
+
+    console.log('Row', currentRow, 'col', currentColumn);
 
     if (event.keyCode === KEY_CODES.RIGHT) {
-      const nextSelector = `#column-${currentIndex + 1}`;
-      const nextItem = document.querySelector(nextSelector);
-      nextItem.focus();
+      if (currentRow === ROWS && currentColumn === COLS + 1) {
+        terminalMatrix[0][1].focus();
+        return;
+      }
+
+      if (currentColumn - 1 === COLS) {
+        terminalMatrix[currentRow + 1][1].focus();
+        return;
+      }
+
+      terminalMatrix[currentRow][currentColumn + 1].focus();
+      return;
     }
 
     if (event.keyCode === KEY_CODES.LEFT) {
-      const nextSelector = `#column-${currentIndex - 1}`;
-      const nextItem = document.querySelector(nextSelector);
-      nextItem.focus();
+      if (currentRow === 0 && currentColumn === 1) {
+        terminalMatrix[ROWS][COLS + 1].focus();
+        return;
+      }
+
+      if (currentColumn === 1) {
+        terminalMatrix[currentRow - 1][COLS + 1].focus();
+        return;
+      }
+
+      terminalMatrix[currentRow][currentColumn -1].focus();
+      return;
     }
 
     if (event.keyCode === KEY_CODES.DOWN) {
-      const nextSelector = `#column-${currentIndex + 12}`;
-      const nextItem = document.querySelector(nextSelector);
-      nextItem.focus();
+      if (currentRow === ROWS) {
+        terminalMatrix[0][currentColumn].focus();
+        return;
+      }
+
+      terminalMatrix[currentRow + 1][currentColumn].focus();
+      return;
     }
 
     if (event.keyCode === KEY_CODES.UP) {
-      const nextSelector = `#column-${currentIndex - 12}`;
-      const nextItem = document.querySelector(nextSelector);
-      nextItem.focus();
+      if (currentRow === 0) {
+        terminalMatrix[ROWS][currentColumn].focus();
+        return;
+      }
+
+      terminalMatrix[currentRow - 1][currentColumn].focus();
+      return;
     }
+
   }
 }
 
