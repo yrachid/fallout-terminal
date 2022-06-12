@@ -1,0 +1,32 @@
+{
+  "name": "fallout-terminal",
+  "version": "1.0.0",
+  "description": "Guidelines:",
+  "main": "dist/terminal.js",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "test": "jest",
+    "build": "rm -rf dist/*.js dist/*.js.map; rollup -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yrachid/fallout-terminal.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yrachid/fallout-terminal/issues"
+  },
+  "homepage": "https://github.com/yrachid/fallout-terminal#readme",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^22.0.0",
+    "@tsconfig/node16": "^1.0.3",
+    "jest": "^28.1.1",
+    "prettier": "^2.6.2",
+    "rollup": "^2.75.6",
+    "rollup-plugin-typescript2": "^0.32.1",
+    "ts-jest": "^28.0.4"
+  }
+}
