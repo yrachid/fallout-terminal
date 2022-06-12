@@ -9,24 +9,24 @@ import dom from './dom';
 // };
 
 const matrix = makeMatrix(
-	{
-		rows: 12,
-		columns: 12
-	},
-	5
+  {
+    rows: 12,
+    columns: 12
+  },
+  5
 );
 
 const rows = matrix.rows.map((row) =>
-	dom.p({
-		className: 'terminal-line',
-		children: [
-			dom.span({
-				className: 'memory-address',
-				content: row.memoryAddress
-			}),
-			...row.columns.map((c) => dom.span({ className: 'terminal-line', tabIndex: 0, content: c }))
-		]
-	})
+  dom.p({
+    className: 'terminal-line',
+    children: [
+      dom.span({
+        className: 'memory-address',
+        content: row.memoryAddress
+      }),
+      ...row.columns.map((c) => dom.span({ className: 'terminal-line', tabIndex: 0, content: c }))
+    ]
+  })
 );
 
 document.body.append(...rows);
