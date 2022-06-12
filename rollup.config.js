@@ -3,7 +3,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import pkg from './package.json';
 
 export default {
-	input: 'terminal.ts',
+	input: 'src/terminal.ts',
 	output: [
 		{
 			file: pkg.main,
