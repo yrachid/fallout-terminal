@@ -10,6 +10,7 @@ Guidelines:
   - Moving up from the top line should go down to the last line
   - Moving left from the start of line should go to the end of previous line
   - Moving right from end of line should go to the start of next line
+- Guesses have different length depending on how secure the terminal is
 
 Steps:
 

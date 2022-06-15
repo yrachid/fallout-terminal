@@ -1,9 +1,5 @@
+import { getMemoryDump, GuessConfig, TerminalDimensions } from './memory-dump';
 import rng from './rng';
-
-type TerminalDimensions = {
-  rowsPerBlock: number;
-  columnsPerBlock: number;
-};
 
 type TerminalRow = {
   memoryAddress: string;
@@ -20,52 +16,12 @@ type TerminalMatrix = {
   };
 };
 
-type GuessConfig = {
-  length: number;
-  guessesPerColumn: number;
-}
-
-const GUESSES = [ 'WHICH', 'OTHER', 'ABOUT', 'MAYBE', 'LUNCH', 'EVERY', 'THEIR', 'FAITH' ];
-
-const range = <T>(limit: number, cb: (idx: number) => T) => [ ...Array(limit).keys() ].map(cb);
-
 const formatMemoryAddress = (address: number) => `0X${address.toString(16)}`.substring(0, 6);
-
-const generateContent = (dimensions: TerminalDimensions, guessConfig: GuessConfig) => {
-  const totalContentSize = (dimensions.columnsPerBlock * dimensions.rowsPerBlock) * 2 + 1;
-  const guessesSize = guessConfig.length * (guessConfig.guessesPerColumn * 2);
-
-  const garbageSize = totalContentSize - guessesSize;
-
-  const garbage = range(garbageSize, () => rng.garbage()).join('');
-
-  const groupOffset = Math.floor(garbageSize / (guessConfig.guessesPerColumn * 2 + 1));
-
-  const guessIndices = range(guessConfig.guessesPerColumn * 2, (i) => groupOffset * i + 1).map((offset) => {
-    const nextIndex = rng.randomWithin(groupOffset - guessConfig.length) + offset;
-
-    return Math.min(nextIndex, garbageSize - guessConfig.length);
-  });
-
-  const insertGuessesIntoGarbage = (result: string, guessIndex: number) =>
-    result.slice(0, guessIndex) + rng.randomItemOf(GUESSES) + result.slice(guessIndex);
-
-  const fullContent = guessIndices.reduce(insertGuessesIntoGarbage, garbage);
-
-  const data = fullContent.split('');
-  const firstBlock = range(dimensions.rowsPerBlock, () => data.splice(0, dimensions.columnsPerBlock))
-  const secondBlock = range(dimensions.rowsPerBlock, () => data.splice(0, dimensions.columnsPerBlock))
-
-  return { indices: guessIndices, 
-    firstBlock,
-    secondBlock
-     };
-};
 
 export const makeMatrix = (dimensions: TerminalDimensions, guessConfig: GuessConfig): TerminalMatrix => {
   const initialMemoryAddress = rng.memoryAddress();
 
-  const { indices, firstBlock, secondBlock} = generateContent(dimensions, guessConfig);
+  const { indices, firstBlock, secondBlock } = getMemoryDump(dimensions, guessConfig);
 
   const firstBlockRows: TerminalRow[] = firstBlock.map((data, idx) => {
     return {
@@ -76,7 +32,9 @@ export const makeMatrix = (dimensions: TerminalDimensions, guessConfig: GuessCon
 
   const secondBlockRows: TerminalRow[] = secondBlock.map((data, idx) => {
     return {
-      memoryAddress: formatMemoryAddress(initialMemoryAddress + (dimensions.rowsPerBlock * dimensions.columnsPerBlock) + idx * dimensions.columnsPerBlock),
+      memoryAddress: formatMemoryAddress(
+        initialMemoryAddress + dimensions.rowsPerBlock * dimensions.columnsPerBlock + idx * dimensions.columnsPerBlock
+      ),
       columns: data
     };
   });
@@ -89,7 +47,7 @@ export const makeMatrix = (dimensions: TerminalDimensions, guessConfig: GuessCon
     },
     rowsPerBlock: {
       firstBlock: firstBlockRows,
-      secondBlock: secondBlockRows,
+      secondBlock: secondBlockRows
     },
     guessLength: guessConfig.length
   };
