@@ -39,7 +39,7 @@ const generateContent = (dimensions: TerminalDimensions, guessConfig: GuessConfi
 
   const garbage = range(garbageSize, () => rng.garbage()).join('');
 
-  const groupOffset = Math.floor(garbageSize / (guessConfig.guessesPerColumn + 1));
+  const groupOffset = Math.floor(garbageSize / (guessConfig.guessesPerColumn * 2 + 1));
 
   const guessIndices = range(guessConfig.guessesPerColumn * 2, (i) => groupOffset * i + 1).map((offset) => {
     const nextIndex = rng.randomWithin(groupOffset - guessConfig.length) + offset;
