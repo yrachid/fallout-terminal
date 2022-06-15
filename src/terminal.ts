@@ -13,12 +13,13 @@ const matrix = makeMatrix(
     rowsPerBlock: 17,
     columnsPerBlock: 12
   },
-  5
+  {
+    length: 5,
+    guessesPerColumn: 4
+  }
 );
 
-
-
-const leftRows = matrix.rows.map((row) =>
+const leftRows = matrix.rowsPerBlock.firstBlock.map((row) =>
   dom.p({
     className: 'terminal-line',
     children: [
@@ -31,7 +32,7 @@ const leftRows = matrix.rows.map((row) =>
   })
 );
 
-const rightRows = matrix.rows.map((row) =>
+const rightRows = matrix.rowsPerBlock.secondBlock.map((row) =>
   dom.p({
     className: 'terminal-line',
     children: [
