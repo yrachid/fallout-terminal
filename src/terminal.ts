@@ -10,11 +10,13 @@ import dom from './dom';
 
 const matrix = makeMatrix(
   {
-    rows: 12,
-    columns: 12
+    rowsPerBlock: 17,
+    columnsPerBlock: 12
   },
   5
 );
+
+
 
 const rows = matrix.rows.map((row) =>
   dom.p({
@@ -32,3 +34,4 @@ const rows = matrix.rows.map((row) =>
 document.body.append(...rows);
 
 console.log('Making Matrix', matrix);
+console.log('Guess Indices', matrix.guessIndices);
