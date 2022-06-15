@@ -16,17 +16,21 @@ const span = (config: Span) => {
   return span;
 };
 
-type Paragraph = {
+type ElementConfig = {
   className: string;
   children: HTMLElement[];
 };
 
-const p = (config: Paragraph) => {
-  const paragraph = document.createElement('p');
-  paragraph.className = config.className;
-  paragraph.append(...config.children);
+const createElement = (name: string) => (config: ElementConfig) => {
+  const element = document.createElement(name);
+  element.className = config.className;
+  element.append(...config.children);
 
-  return paragraph;
+  return element;
 };
 
-export default { span, p };
+const p = createElement('p');
+
+const section = createElement('section');
+
+export default { span, p, section };

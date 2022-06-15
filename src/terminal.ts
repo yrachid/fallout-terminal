@@ -18,7 +18,7 @@ const matrix = makeMatrix(
 
 
 
-const rows = matrix.rows.map((row) =>
+const leftRows = matrix.rows.map((row) =>
   dom.p({
     className: 'terminal-line',
     children: [
@@ -31,7 +31,31 @@ const rows = matrix.rows.map((row) =>
   })
 );
 
-document.body.append(...rows);
+const rightRows = matrix.rows.map((row) =>
+  dom.p({
+    className: 'terminal-line',
+    children: [
+      dom.span({
+        className: 'memory-address',
+        content: row.memoryAddress
+      }),
+      ...row.columns.map((c) => dom.span({ className: 'terminal-line', tabIndex: 0, content: c }))
+    ]
+  })
+);
+
+const terminalBlockContainer = document.querySelector('#block-container');
+
+terminalBlockContainer?.append(
+  dom.section({
+    className: 'terminal-block',
+    children: leftRows
+  }),
+  dom.section({
+    className: 'terminal-block',
+    children: rightRows 
+  }),
+);
 
 console.log('Making Matrix', matrix);
 console.log('Guess Indices', matrix.guessIndices);
