@@ -1,4 +1,5 @@
 import rng from './rng';
+import { range } from './terminal';
 
 export type SecurityLevel = {
   passphraseLength: number;
@@ -19,8 +20,6 @@ export type MemoryDump = {
 
 const GUESSES = [ 'WHICH', 'OTHER', 'ABOUT', 'MAYBE', 'LUNCH', 'EVERY', 'THEIR', 'FAITH' ];
 
-const range = <T>(limit: number, cb: (idx: number) => T) => [ ...Array(limit).keys() ].map(cb);
-
 export const getMemoryDump = (dumpSize: number, securityLevel: SecurityLevel): MemoryDump => {
   const guessesSize = securityLevel.passphraseLength * securityLevel.passphrasesDumped;
 
@@ -28,6 +27,7 @@ export const getMemoryDump = (dumpSize: number, securityLevel: SecurityLevel): M
 
   const garbage = range(garbageSize, () => rng.garbage()).join('');
 
+  // TODO: Improve guess distribution logic
   const groupOffset = Math.floor(garbageSize / (securityLevel.passphrasesDumped + 1));
 
   const guessIndices = range(securityLevel.passphrasesDumped, (i) => groupOffset * i + 1).map((offset) => {

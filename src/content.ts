@@ -1,5 +1,6 @@
 import { MemoryDump } from './memory-dump';
 import rng from './rng';
+import { range } from './terminal';
 
 export type TerminalDimensions = {
   rowsPerBlock: number;
@@ -19,8 +20,6 @@ type TerminalMatrix = {
 };
 
 const formatMemoryAddress = (address: number) => `0X${address.toString(16)}`.substring(0, 6);
-
-const range = <T>(limit: number, cb: (idx: number) => T) => [ ...Array(limit).keys() ].map(cb);
 
 export const formatMemoryDump = (dimensions: TerminalDimensions, memoryDump: MemoryDump): TerminalMatrix => {
   const initialMemoryAddress = rng.memoryAddress();

@@ -9,6 +9,8 @@ import { getMemoryDump, SecurityLevels } from './memory-dump';
 //   LEFT: 37,
 // };
 
+export const range = <T>(limit: number, cb: (idx: number) => T) => [ ...Array(limit).keys() ].map(cb);
+
 const terminalDimensions: TerminalDimensions = {
   rowsPerBlock: 17,
   columnsPerBlock: 12

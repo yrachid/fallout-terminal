@@ -3,6 +3,7 @@ type Span = {
   content: string;
   tabIndex?: number;
 };
+
 const span = (config: Span) => {
   const span = document.createElement('span');
   span.className = config.className;
