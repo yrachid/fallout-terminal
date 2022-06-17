@@ -1,0 +1,1 @@
+export const range = <T>(limit: number, cb: (idx: number) => T) => [ ...Array(limit).keys() ].map(cb);

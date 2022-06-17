@@ -1,5 +1,5 @@
+import { range } from './collections';
 import rng from './rng';
-import { range } from './terminal';
 
 export type SecurityLevel = {
   passphraseLength: number;

@@ -1,6 +1,6 @@
+import { range } from './collections';
 import { MemoryDump } from './memory-dump';
 import rng from './rng';
-import { range } from './terminal';
 
 export type TerminalDimensions = {
   rowsPerBlock: number;
