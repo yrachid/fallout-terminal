@@ -7,7 +7,7 @@ type Span = {
 const span = (config: Span) => {
   const span = document.createElement('span');
   span.className = config.className;
-  if (config.tabIndex) {
+  if (config.tabIndex !== null && config.tabIndex !== undefined) {
     span.tabIndex = config.tabIndex;
   }
   const content = document.createTextNode(config.content);
