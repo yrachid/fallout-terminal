@@ -1,5 +1,10 @@
-import { getMemoryDump, GuessConfig, TerminalDimensions } from './memory-dump';
+import { MemoryDump } from './memory-dump';
 import rng from './rng';
+
+export type TerminalDimensions = {
+  rowsPerBlock: number;
+  columnsPerBlock: number;
+};
 
 type TerminalRow = {
   memoryAddress: string;
@@ -7,9 +12,6 @@ type TerminalRow = {
 };
 
 type TerminalMatrix = {
-  guessIndices: number[];
-  dimensions: TerminalDimensions;
-  guessLength: number;
   rowsPerBlock: {
     firstBlock: TerminalRow[];
     secondBlock: TerminalRow[];
@@ -18,10 +20,14 @@ type TerminalMatrix = {
 
 const formatMemoryAddress = (address: number) => `0X${address.toString(16)}`.substring(0, 6);
 
-export const makeMatrix = (dimensions: TerminalDimensions, guessConfig: GuessConfig): TerminalMatrix => {
+const range = <T>(limit: number, cb: (idx: number) => T) => [ ...Array(limit).keys() ].map(cb);
+
+export const formatMemoryDump = (dimensions: TerminalDimensions, memoryDump: MemoryDump): TerminalMatrix => {
   const initialMemoryAddress = rng.memoryAddress();
 
-  const { indices, firstBlock, secondBlock } = getMemoryDump(dimensions, guessConfig);
+  const data = memoryDump.dumpedContent.split('');
+  const firstBlock = range(dimensions.rowsPerBlock, () => data.splice(0, dimensions.columnsPerBlock));
+  const secondBlock = range(dimensions.rowsPerBlock, () => data.splice(0, dimensions.columnsPerBlock));
 
   const firstBlockRows: TerminalRow[] = firstBlock.map((data, idx) => {
     return {
@@ -40,15 +46,10 @@ export const makeMatrix = (dimensions: TerminalDimensions, guessConfig: GuessCon
   });
 
   return {
-    guessIndices: indices,
-    dimensions: {
-      rowsPerBlock: dimensions.rowsPerBlock,
-      columnsPerBlock: dimensions.columnsPerBlock
-    },
     rowsPerBlock: {
       firstBlock: firstBlockRows,
       secondBlock: secondBlockRows
     },
-    guessLength: guessConfig.length
   };
-};
+
+}

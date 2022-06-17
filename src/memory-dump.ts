@@ -1,50 +1,48 @@
 import rng from './rng';
 
-export type TerminalDimensions = {
-  rowsPerBlock: number;
-  columnsPerBlock: number;
-};
+export type SecurityLevel = {
+  passphraseLength: number;
+  passphrasesDumped: number;
+}
 
-export type GuessConfig = {
-  length: number;
-  guessesPerColumn: number;
+export const SecurityLevels: Record<string, SecurityLevel> = {
+  L1: {
+    passphraseLength: 5,
+    passphrasesDumped: 8
+  }
+}
+
+export type MemoryDump = {
+  guessIndices: number[];
+  dumpedContent: string;
 }
 
 const GUESSES = [ 'WHICH', 'OTHER', 'ABOUT', 'MAYBE', 'LUNCH', 'EVERY', 'THEIR', 'FAITH' ];
 
 const range = <T>(limit: number, cb: (idx: number) => T) => [ ...Array(limit).keys() ].map(cb);
 
-// TODO: This can be completely decoupled from terminal dimensions
-// - Number of "bytes" should suffice
-// - GuessConfig should become a security level enum
-export const getMemoryDump = (dimensions: TerminalDimensions, guessConfig: GuessConfig) => {
-  const totalContentSize = dimensions.columnsPerBlock * dimensions.rowsPerBlock * 2 + 1;
-  const guessesSize = guessConfig.length * (guessConfig.guessesPerColumn * 2);
+export const getMemoryDump = (dumpSize: number, securityLevel: SecurityLevel): MemoryDump => {
+  const guessesSize = securityLevel.passphraseLength * securityLevel.passphrasesDumped;
 
-  const garbageSize = totalContentSize - guessesSize;
+  const garbageSize = dumpSize - guessesSize;
 
   const garbage = range(garbageSize, () => rng.garbage()).join('');
 
-  const groupOffset = Math.floor(garbageSize / (guessConfig.guessesPerColumn * 2 + 1));
+  const groupOffset = Math.floor(garbageSize / (securityLevel.passphrasesDumped + 1));
 
-  const guessIndices = range(guessConfig.guessesPerColumn * 2, (i) => groupOffset * i + 1).map((offset) => {
-    const nextIndex = rng.randomWithin(groupOffset - guessConfig.length) + offset;
+  const guessIndices = range(securityLevel.passphrasesDumped, (i) => groupOffset * i + 1).map((offset) => {
+    const nextIndex = rng.randomWithin(groupOffset - securityLevel.passphraseLength) + offset;
 
-    return Math.min(nextIndex, garbageSize - guessConfig.length);
+    return Math.min(nextIndex, garbageSize - securityLevel.passphraseLength);
   });
 
   const insertGuessesIntoGarbage = (result: string, guessIndex: number) =>
     result.slice(0, guessIndex) + rng.randomItemOf(GUESSES) + result.slice(guessIndex);
 
-  const fullContent = guessIndices.reduce(insertGuessesIntoGarbage, garbage);
-
-  const data = fullContent.split('');
-  const firstBlock = range(dimensions.rowsPerBlock, () => data.splice(0, dimensions.columnsPerBlock));
-  const secondBlock = range(dimensions.rowsPerBlock, () => data.splice(0, dimensions.columnsPerBlock));
+  const dumpedContent = guessIndices.reduce(insertGuessesIntoGarbage, garbage);
 
   return {
-    indices: guessIndices,
-    firstBlock,
-    secondBlock
+    guessIndices,
+    dumpedContent
   };
 };

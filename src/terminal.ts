@@ -1,5 +1,6 @@
-import { makeMatrix } from './content';
+import { formatMemoryDump, TerminalDimensions } from './content';
 import dom from './dom';
+import { getMemoryDump, SecurityLevels } from './memory-dump';
 
 // const KEY_CODES = {
 //   UP: 38,
@@ -8,15 +9,18 @@ import dom from './dom';
 //   LEFT: 37,
 // };
 
-const matrix = makeMatrix(
-  {
-    rowsPerBlock: 17,
-    columnsPerBlock: 12
-  },
-  {
-    length: 5,
-    guessesPerColumn: 4
-  }
+const terminalDimensions: TerminalDimensions = {
+  rowsPerBlock: 17,
+  columnsPerBlock: 12
+}
+
+const memoryDumpSize = (terminalDimensions.columnsPerBlock * terminalDimensions.rowsPerBlock) * 2 + 1;
+
+const memoryDump = getMemoryDump(memoryDumpSize, SecurityLevels.L1);
+
+const matrix = formatMemoryDump(
+  terminalDimensions,
+  memoryDump
 );
 
 const leftRows = matrix.rowsPerBlock.firstBlock.map((row) =>
@@ -57,6 +61,3 @@ terminalBlockContainer?.append(
     children: rightRows 
   }),
 );
-
-console.log('Making Matrix', matrix);
-console.log('Guess Indices', matrix.guessIndices);
