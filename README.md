@@ -1,3 +1,8 @@
+
+<img src="./example.png">
+
+Check it live at [Github Pages](https://yrachid.github.io/fallout-terminal/).
+
 Guidelines:
 
 - Rows: 17
