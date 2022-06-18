@@ -7,7 +7,7 @@ export type TerminalDimensions = {
   columnsPerBlock: number;
 };
 
-type TerminalRow = {
+export type TerminalRow = {
   memoryAddress: string;
   columns: string[];
 };

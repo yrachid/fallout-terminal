@@ -2,15 +2,20 @@ type Span = {
   className: string;
   content: string;
   tabIndex?: number;
+  dataAttributes?: Record<string, string | number>;
 };
 
 const span = (config: Span) => {
-  const span = document.createElement('span');
+  const span = document.createElement("span");
   span.className = config.className;
   if (config.tabIndex !== null && config.tabIndex !== undefined) {
     span.tabIndex = config.tabIndex;
   }
   const content = document.createTextNode(config.content);
+
+  Object.entries(config.dataAttributes ?? {}).forEach(([key, value]) => {
+    span.setAttribute(`data-${key}`, value.toString());
+  });
 
   span.appendChild(content);
 
@@ -30,8 +35,8 @@ const createElement = (name: string) => (config: ElementConfig) => {
   return element;
 };
 
-const p = createElement('p');
+const p = createElement("p");
 
-const section = createElement('section');
+const section = createElement("section");
 
 export default { span, p, section };
