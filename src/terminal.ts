@@ -9,6 +9,35 @@ const KEY_CODES = {
   LEFT: "ArrowLeft",
 };
 
+const move = {
+  [KEY_CODES.DOWN]: (coord: ColumnCoordinates) =>
+    coord.row === terminalDimensions.rowsPerBlock - 1
+      ? { row: 0 }
+      : { row: coord.row + 1 },
+  [KEY_CODES.UP]: (coord: ColumnCoordinates) =>
+    coord.row === 0
+      ? { row: terminalDimensions.rowsPerBlock - 1 }
+      : { row: coord.row - 1 },
+  [KEY_CODES.LEFT]: (coord: ColumnCoordinates) =>
+    coord.column === 0
+      ? {
+          column: terminalDimensions.columnsPerBlock - 1,
+          block: coord.block === 0 ? 1 : 0,
+        }
+      : {
+          column: coord.column - 1,
+        },
+  [KEY_CODES.RIGHT]: (coord: ColumnCoordinates) =>
+    coord.column === terminalDimensions.columnsPerBlock - 1
+      ? {
+          column: 0,
+          block: coord.block === 0 ? 1 : 0,
+        }
+      : {
+          column: coord.column + 1,
+        },
+};
+
 export const range = <T>(limit: number, cb: (idx: number) => T) =>
   [...Array(limit).keys()].map(cb);
 
@@ -42,6 +71,12 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
               block: blockIndex,
               column: columnIndex,
               row: rowIndex,
+              "contiguous-index":
+                columnIndex +
+                terminalDimensions.columnsPerBlock * rowIndex +
+                blockIndex *
+                  (terminalDimensions.columnsPerBlock *
+                    terminalDimensions.rowsPerBlock),
             },
           })
         ),
@@ -68,48 +103,12 @@ terminalBlockContainer?.append(
 document.onkeydown = (event) => {
   const activeElement = document.activeElement as HTMLElement;
   if (!activeElement || activeElement.className !== "terminal-column") {
-    console.log("Not focusing on any column");
     (document.querySelector(".terminal-column") as HTMLElement).focus();
     return;
   }
 
-  const move = {
-    [KEY_CODES.DOWN]: (coord: ColumnCoordinates) =>
-      coord.row === terminalDimensions.rowsPerBlock - 1
-        ? { row: 0 }
-        : { row: coord.row + 1 },
-    [KEY_CODES.UP]: (coord: ColumnCoordinates) =>
-      coord.row === 0
-        ? { row: terminalDimensions.rowsPerBlock - 1 }
-        : { row: coord.row - 1 },
-    [KEY_CODES.LEFT]: (coord: ColumnCoordinates) =>
-      coord.column === 0
-        ? {
-            column: terminalDimensions.columnsPerBlock - 1,
-            block: coord.block === 0 ? 1 : 0,
-          }
-        : {
-            column: coord.column - 1,
-          },
-    [KEY_CODES.RIGHT]: (coord: ColumnCoordinates) =>
-      coord.column === terminalDimensions.columnsPerBlock - 1
-        ? {
-            column: 0,
-            block: coord.block === 0 ? 1 : 0,
-          }
-        : {
-            column: coord.column + 1,
-          },
-  };
-
   if (Object.values(KEY_CODES).includes(event.key)) {
-    const currentCoordinates = getColumnCoordinates(activeElement);
-    const nextCoordinates = {
-      ...currentCoordinates,
-      ...move[event.key](currentCoordinates),
-    };
-
-    getNextColumn(nextCoordinates)?.focus();
+    getNextColumn(activeElement, event.key)?.focus();
   }
 };
 
@@ -117,10 +116,22 @@ type ColumnCoordinates = {
   row: number;
   column: number;
   block: number;
+  contiguousIndex: number;
 };
 
-const getNextColumn = (coordinates: ColumnCoordinates) => {
-  const selector = `.terminal-column[data-row="${coordinates.row}"][data-column="${coordinates.column}"][data-block="${coordinates.block}"]`;
+const getNextColumn = (activeElement: HTMLElement, movement: string) => {
+  const coordinates = getColumnCoordinates(activeElement);
+
+  if (memoryDump.guessIndices.includes(coordinates.contiguousIndex) && movement === KEY_CODES.RIGHT) {
+    const selector = `.terminal-column[data-contiguous-index="${
+      coordinates.contiguousIndex + SecurityLevels.L1.passphraseLength
+    }"]`;
+    return document.querySelector(selector) as HTMLElement | undefined;
+  }
+
+  const nextCoordinates = { ...coordinates, ...move[movement](coordinates) };
+  const selector = `.terminal-column[data-row="${nextCoordinates.row}"][data-column="${nextCoordinates.column}"][data-block="${nextCoordinates.block}"]`;
+
   return document.querySelector(selector) as HTMLElement | undefined;
 };
 
@@ -129,6 +140,7 @@ const getColumnCoordinates = (activeColumn: HTMLElement): ColumnCoordinates => {
     row: parseInt(activeColumn.dataset.row!),
     column: parseInt(activeColumn.dataset.column!),
     block: parseInt(activeColumn.dataset.block!),
+    contiguousIndex: parseInt(activeColumn.dataset.contiguousIndex!),
   };
 };
 
