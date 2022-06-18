@@ -2,13 +2,13 @@
   "name": "fallout-terminal",
   "version": "1.0.0",
   "description": "Guidelines:",
-  "main": "dist/terminal.js",
+  "main": "docs/terminal.js",
   "files": [
-    "dist/"
+    "docs/"
   ],
   "scripts": {
     "test": "jest",
-    "build": "rm -rf dist/*.js dist/*.js.map; rollup -c"
+    "build": "rm -rf docs/*.js docs/*.js.map; rollup -c"
   },
   "repository": {
     "type": "git",
