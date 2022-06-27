@@ -1,6 +1,6 @@
 body {
-  background-color: #031C00;
-  color: #8EE28E;
+  background-color: #031c00;
+  color: #8ee28e;
 }
 
 .terminal-line {
@@ -14,9 +14,14 @@ body {
   padding: 1px;
 }
 
+.active-column {
+  color: #8ee28e;
+  background-color: #031c00;
+}
+
 .terminal-column:focus {
-  background-color: #8EE28E;
-  color: #031C00;
+  background-color: #8ee28e;
+  color: #031c00;
   outline: none;
 }
 

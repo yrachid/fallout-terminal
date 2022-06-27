@@ -91,25 +91,42 @@ var dom = { span, p, section };
 const SecurityLevels = {
     L1: {
         passphraseLength: 5,
-        passphrasesDumped: 8
-    }
+        passphrasesDumped: 8,
+    },
 };
-const GUESSES = ['WHICH', 'OTHER', 'ABOUT', 'MAYBE', 'LUNCH', 'EVERY', 'THEIR', 'FAITH'];
+const GUESSES = [
+    "WHICH",
+    "OTHER",
+    "ABOUT",
+    "MAYBE",
+    "LUNCH",
+    "EVERY",
+    "THEIR",
+    "FAITH",
+];
 const getMemoryDump = (dumpSize, securityLevel) => {
     const guessesSize = securityLevel.passphraseLength * securityLevel.passphrasesDumped;
     const garbageSize = dumpSize - guessesSize;
-    const garbage = range$1(garbageSize, () => rng.garbage()).join('');
+    const garbage = range$1(garbageSize, () => rng.garbage()).join("");
     // TODO: Improve guess distribution logic
     const groupOffset = Math.floor(garbageSize / (securityLevel.passphrasesDumped + 1));
     const guessIndices = range$1(securityLevel.passphrasesDumped, (i) => groupOffset * i + 1).map((offset) => {
         const nextIndex = rng.randomWithin(groupOffset - securityLevel.passphraseLength) + offset;
         return Math.min(nextIndex, garbageSize - securityLevel.passphraseLength);
     });
-    const insertGuessesIntoGarbage = (result, guessIndex) => result.slice(0, guessIndex) + rng.randomItemOf(GUESSES) + result.slice(guessIndex);
+    const insertGuessesIntoGarbage = (result, guessIndex) => result.slice(0, guessIndex) +
+        rng.randomItemOf(GUESSES) +
+        result.slice(guessIndex);
     const dumpedContent = guessIndices.reduce(insertGuessesIntoGarbage, garbage);
+    const guessBoundaries = guessIndices.map((index) => ({
+        start: index,
+        end: index + (securityLevel.passphraseLength - 1),
+    }));
+    const getGuessBoundary = (index) => guessBoundaries.find(({ start, end }) => index >= start && index <= end);
     return {
         guessIndices,
-        dumpedContent
+        dumpedContent,
+        getGuessBoundary,
     };
 };
 
@@ -197,8 +214,13 @@ document.onkeydown = (event) => {
 };
 const getNextColumn = (activeElement, movement) => {
     const coordinates = getColumnCoordinates(activeElement);
-    if (memoryDump.guessIndices.includes(coordinates.contiguousIndex) && movement === KEY_CODES.RIGHT) {
-        const selector = `.terminal-column[data-contiguous-index="${coordinates.contiguousIndex + SecurityLevels.L1.passphraseLength}"]`;
+    const guessBoundary = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
+    if (guessBoundary !== undefined && movement === KEY_CODES.RIGHT) {
+        const selector = `.terminal-column[data-contiguous-index="${guessBoundary.end + 1}"]`;
+        return document.querySelector(selector);
+    }
+    if (guessBoundary !== undefined && movement === KEY_CODES.LEFT) {
+        const selector = `.terminal-column[data-contiguous-index="${guessBoundary.start - 1}"]`;
         return document.querySelector(selector);
     }
     const nextCoordinates = { ...coordinates, ...move[movement](coordinates) };

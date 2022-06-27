@@ -122,9 +122,20 @@ type ColumnCoordinates = {
 const getNextColumn = (activeElement: HTMLElement, movement: string) => {
   const coordinates = getColumnCoordinates(activeElement);
 
-  if (memoryDump.guessIndices.includes(coordinates.contiguousIndex) && movement === KEY_CODES.RIGHT) {
+  const guessBoundary = memoryDump.getGuessBoundary(
+    coordinates.contiguousIndex
+  );
+
+  if (guessBoundary !== undefined && movement === KEY_CODES.RIGHT) {
     const selector = `.terminal-column[data-contiguous-index="${
-      coordinates.contiguousIndex + SecurityLevels.L1.passphraseLength
+      guessBoundary.end + 1
+    }"]`;
+    return document.querySelector(selector) as HTMLElement | undefined;
+  }
+
+  if (guessBoundary !== undefined && movement === KEY_CODES.LEFT) {
+    const selector = `.terminal-column[data-contiguous-index="${
+      guessBoundary.start - 1
     }"]`;
     return document.querySelector(selector) as HTMLElement | undefined;
   }
