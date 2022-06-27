@@ -33,7 +33,26 @@ const GUESSES = [
   "EVERY",
   "THEIR",
   "FAITH",
+  "FEVER",
+  "HEADS",
+  "CRAZY",
+  "GYOZA",
+  "PROXY",
+  "CHECK",
 ];
+
+const generateGuesses = (guessCount: number) => {
+  const guesses = new Set();
+
+  while (guesses.size < guessCount) {
+    const nextItem = rng.randomItemOf(GUESSES);
+    if (!guesses.has(nextItem)) {
+      guesses.add(nextItem);
+    }
+  }
+
+  return [...guesses];
+};
 
 export const getMemoryDump = (
   dumpSize: number,
@@ -43,6 +62,8 @@ export const getMemoryDump = (
     securityLevel.passphraseLength * securityLevel.passphrasesDumped;
 
   const garbageSize = dumpSize - guessesSize;
+
+  const guesses = generateGuesses(securityLevel.passphrasesDumped);
 
   const garbage = range(garbageSize, () => rng.garbage()).join("");
 
@@ -62,9 +83,7 @@ export const getMemoryDump = (
   });
 
   const insertGuessesIntoGarbage = (result: string, guessIndex: number) =>
-    result.slice(0, guessIndex) +
-    rng.randomItemOf(GUESSES) +
-    result.slice(guessIndex);
+    result.slice(0, guessIndex) + guesses.pop() + result.slice(guessIndex);
 
   const dumpedContent = guessIndices.reduce(insertGuessesIntoGarbage, garbage);
 

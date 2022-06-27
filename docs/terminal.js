@@ -103,10 +103,27 @@ const GUESSES = [
     "EVERY",
     "THEIR",
     "FAITH",
+    "FEVER",
+    "HEADS",
+    "CRAZY",
+    "GYOZA",
+    "PROXY",
+    "CHECK",
 ];
+const generateGuesses = (guessCount) => {
+    const guesses = new Set();
+    while (guesses.size < guessCount) {
+        const nextItem = rng.randomItemOf(GUESSES);
+        if (!guesses.has(nextItem)) {
+            guesses.add(nextItem);
+        }
+    }
+    return [...guesses];
+};
 const getMemoryDump = (dumpSize, securityLevel) => {
     const guessesSize = securityLevel.passphraseLength * securityLevel.passphrasesDumped;
     const garbageSize = dumpSize - guessesSize;
+    const guesses = generateGuesses(securityLevel.passphrasesDumped);
     const garbage = range$1(garbageSize, () => rng.garbage()).join("");
     // TODO: Improve guess distribution logic
     const groupOffset = Math.floor(garbageSize / (securityLevel.passphrasesDumped + 1));
@@ -114,9 +131,7 @@ const getMemoryDump = (dumpSize, securityLevel) => {
         const nextIndex = rng.randomWithin(groupOffset - securityLevel.passphraseLength) + offset;
         return Math.min(nextIndex, garbageSize - securityLevel.passphraseLength);
     });
-    const insertGuessesIntoGarbage = (result, guessIndex) => result.slice(0, guessIndex) +
-        rng.randomItemOf(GUESSES) +
-        result.slice(guessIndex);
+    const insertGuessesIntoGarbage = (result, guessIndex) => result.slice(0, guessIndex) + guesses.pop() + result.slice(guessIndex);
     const dumpedContent = guessIndices.reduce(insertGuessesIntoGarbage, garbage);
     const guessBoundaries = guessIndices.map((index) => ({
         start: index,
