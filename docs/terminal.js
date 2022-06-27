@@ -75,6 +75,12 @@ const span = (config) => {
     Object.entries(config.dataAttributes ?? {}).forEach(([key, value]) => {
         span.setAttribute(`data-${key}`, value.toString());
     });
+    if (config.onFocus !== undefined) {
+        span.addEventListener('focus', config.onFocus);
+    }
+    if (config.onBlur !== undefined) {
+        span.addEventListener('blur', config.onBlur);
+    }
     span.appendChild(content);
     return span;
 };
@@ -190,21 +196,42 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
             className: "memory-address",
             content: row.memoryAddress,
         }),
-        ...row.columns.map((c, columnIndex) => dom.span({
-            className: "terminal-column",
-            tabIndex: 0,
-            content: c,
-            dataAttributes: {
-                block: blockIndex,
-                column: columnIndex,
-                row: rowIndex,
-                "contiguous-index": columnIndex +
-                    terminalDimensions.columnsPerBlock * rowIndex +
-                    blockIndex *
-                        (terminalDimensions.columnsPerBlock *
-                            terminalDimensions.rowsPerBlock),
-            },
-        })),
+        ...row.columns.map((c, columnIndex) => {
+            const contiguousIndex = columnIndex +
+                terminalDimensions.columnsPerBlock * rowIndex +
+                blockIndex *
+                    (terminalDimensions.columnsPerBlock *
+                        terminalDimensions.rowsPerBlock);
+            return dom.span({
+                className: "terminal-column",
+                tabIndex: 0,
+                content: c,
+                dataAttributes: {
+                    block: blockIndex,
+                    column: columnIndex,
+                    row: rowIndex,
+                    "contiguous-index": contiguousIndex,
+                },
+                onFocus: () => {
+                    const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
+                    if (guessBounds !== undefined) {
+                        for (let i = guessBounds.start; i <= guessBounds.end; i++) {
+                            const col = document.querySelector(`.terminal-column[data-contiguous-index="${i}"]`);
+                            col?.classList.add('active-column');
+                        }
+                    }
+                },
+                onBlur: () => {
+                    const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
+                    if (guessBounds !== undefined) {
+                        for (let i = guessBounds.start; i <= guessBounds.end; i++) {
+                            const col = document.querySelector(`.terminal-column[data-contiguous-index="${i}"]`);
+                            col?.classList.remove('active-column');
+                        }
+                    }
+                },
+            });
+        }),
     ],
 }));
 const firstBlockRows = buildBlockOfRows(matrix.rowsPerBlock.firstBlock, 0);
@@ -219,7 +246,7 @@ terminalBlockContainer?.append(dom.section({
 }));
 document.onkeydown = (event) => {
     const activeElement = document.activeElement;
-    if (!activeElement || activeElement.className !== "terminal-column") {
+    if (!activeElement || !activeElement.classList.contains("terminal-column")) {
         document.querySelector(".terminal-column").focus();
         return;
     }

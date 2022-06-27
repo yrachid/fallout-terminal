@@ -15,8 +15,8 @@ body {
 }
 
 .active-column {
-  color: #8ee28e;
-  background-color: #031c00;
+  background-color: #8ee28e;
+  color: #031c00;
 }
 
 .terminal-column:focus {
@@ -26,7 +26,6 @@ body {
 }
 
 .terminal-block {
-  /* border: solid 1px rgb(27, 2, 243); */
   padding: 50px;
 }
 
@@ -40,7 +39,6 @@ body {
   display: flex;
   width: 100%;
   height: 100%;
-  /* border: solid 1px #F00; */
   flex-direction: row;
   justify-content: center;
 }

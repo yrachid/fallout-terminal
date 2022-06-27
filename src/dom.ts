@@ -3,6 +3,8 @@ type Span = {
   content: string;
   tabIndex?: number;
   dataAttributes?: Record<string, string | number>;
+  onFocus?: () => any;
+  onBlur?: () => any;
 };
 
 const span = (config: Span) => {
@@ -16,6 +18,14 @@ const span = (config: Span) => {
   Object.entries(config.dataAttributes ?? {}).forEach(([key, value]) => {
     span.setAttribute(`data-${key}`, value.toString());
   });
+
+  if (config.onFocus !== undefined) {
+    span.addEventListener('focus', config.onFocus)
+  }
+
+  if (config.onBlur !== undefined) {
+    span.addEventListener('blur', config.onBlur)
+  }
 
   span.appendChild(content);
 

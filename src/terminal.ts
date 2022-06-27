@@ -62,8 +62,15 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
           className: "memory-address",
           content: row.memoryAddress,
         }),
-        ...row.columns.map((c, columnIndex) =>
-          dom.span({
+        ...row.columns.map((c, columnIndex) => {
+          const contiguousIndex =
+            columnIndex +
+            terminalDimensions.columnsPerBlock * rowIndex +
+            blockIndex *
+              (terminalDimensions.columnsPerBlock *
+                terminalDimensions.rowsPerBlock);
+
+          return dom.span({
             className: "terminal-column",
             tabIndex: 0,
             content: c,
@@ -71,15 +78,28 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
               block: blockIndex,
               column: columnIndex,
               row: rowIndex,
-              "contiguous-index":
-                columnIndex +
-                terminalDimensions.columnsPerBlock * rowIndex +
-                blockIndex *
-                  (terminalDimensions.columnsPerBlock *
-                    terminalDimensions.rowsPerBlock),
+              "contiguous-index": contiguousIndex,
             },
-          })
-        ),
+            onFocus: () => {
+              const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
+              if (guessBounds !== undefined) {
+                for (let i = guessBounds.start; i <= guessBounds.end; i++) {
+                  const col = document.querySelector(`.terminal-column[data-contiguous-index="${i}"]`)
+                  col?.classList.add('active-column')
+                }
+              }
+            },
+            onBlur: () => {
+              const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
+              if (guessBounds !== undefined) {
+                for (let i = guessBounds.start; i <= guessBounds.end; i++) {
+                  const col = document.querySelector(`.terminal-column[data-contiguous-index="${i}"]`)
+                  col?.classList.remove('active-column')
+                }
+              }
+            },
+          });
+        }),
       ],
     })
   );
@@ -102,7 +122,7 @@ terminalBlockContainer?.append(
 
 document.onkeydown = (event) => {
   const activeElement = document.activeElement as HTMLElement;
-  if (!activeElement || activeElement.className !== "terminal-column") {
+  if (!activeElement || !activeElement.classList.contains("terminal-column")) {
     (document.querySelector(".terminal-column") as HTMLElement).focus();
     return;
   }
