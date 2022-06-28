@@ -111,6 +111,10 @@ const getActiveColumnCoordinates = () => {
         contiguousIndex: parseInt(activeColumn.dataset.contiguousIndex),
     };
 };
+const guessText = (bounds) => boundedRange(bounds)
+    .map((i) => by.contiguousIndex(i))
+    .map((column) => column?.innerText)
+    .join("");
 var domQuery = {
     by,
     firstColumn: () => document.querySelector(".terminal-column"),
@@ -118,12 +122,13 @@ var domQuery = {
     isActiveElementATerminalColumn: () => document.activeElement &&
         document.activeElement.classList.contains("terminal-column"),
     getActiveColumnCoordinates,
+    guessText,
 };
 
 const SecurityLevels = {
     L1: {
         passphraseLength: 5,
-        passphrasesDumped: 8,
+        passphrasesDumped: 12,
     },
 };
 const GUESSES = [
@@ -227,6 +232,17 @@ const movement = (terminalDimensions, memoryDump) => {
         }
         if (Object.values(KEY_CODES).includes(event.key)) {
             getNextColumn(event.key)?.focus();
+            return;
+        }
+        if (event.key === "Enter") {
+            const coordinates = domQuery.getActiveColumnCoordinates();
+            const boundaries = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
+            if (boundaries) {
+                console.log('Guess selected:', domQuery.guessText(boundaries));
+            }
+            else {
+                console.log('Garbage selected:', domQuery.by.contiguousIndex(coordinates.contiguousIndex)?.innerText);
+            }
         }
     };
 };

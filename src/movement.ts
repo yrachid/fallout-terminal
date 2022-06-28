@@ -69,6 +69,20 @@ export const movement = (
 
     if (Object.values(KEY_CODES).includes(event.key)) {
       getNextColumn(event.key)?.focus();
+      return;
+    }
+
+    if (event.key === "Enter") {
+      const coordinates = domQuery.getActiveColumnCoordinates();
+      const boundaries = memoryDump.getGuessBoundary(
+        coordinates.contiguousIndex
+      );
+
+      if (boundaries) {
+        console.log('Guess selected:', domQuery.guessText(boundaries));
+      } else {
+        console.log('Garbage selected:', domQuery.by.contiguousIndex(coordinates.contiguousIndex)?.innerText);
+      }
     }
   };
 };

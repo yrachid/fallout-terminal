@@ -1,3 +1,6 @@
+import { boundedRange } from "./collections";
+import { GuessBoundary } from "./memory-dump";
+
 export type ColumnRowAndBlock = {
   column: number;
   row: number;
@@ -33,6 +36,12 @@ const getActiveColumnCoordinates = () => {
   };
 };
 
+const guessText = (bounds: GuessBoundary) =>
+  boundedRange(bounds)
+    .map((i) => by.contiguousIndex(i))
+    .map((column) => column?.innerText)
+    .join("");
+
 export default {
   by,
   firstColumn: () => document.querySelector(".terminal-column") as HTMLElement,
@@ -42,4 +51,5 @@ export default {
     document.activeElement &&
     document.activeElement.classList.contains("terminal-column"),
   getActiveColumnCoordinates,
+  guessText,
 };
