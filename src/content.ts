@@ -12,7 +12,7 @@ export type TerminalRow = {
   columns: string[];
 };
 
-type TerminalMatrix = {
+export type TerminalMatrix = {
   rowsPerBlock: {
     firstBlock: TerminalRow[];
     secondBlock: TerminalRow[];
