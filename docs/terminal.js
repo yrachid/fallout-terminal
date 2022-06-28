@@ -125,6 +125,91 @@ var domQuery = {
     guessText,
 };
 
+const contentSelection = (memoryDump) => {
+    return function handleContentSelection() {
+        const coordinates = domQuery.getActiveColumnCoordinates();
+        const boundaries = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
+        if (boundaries) {
+            console.log("Guess selected:", domQuery.guessText(boundaries));
+        }
+        else {
+            console.log("Garbage selected:", domQuery.by.contiguousIndex(coordinates.contiguousIndex)?.innerText);
+        }
+    };
+};
+
+const movement = (terminalDimensions, memoryDump) => {
+    const move = {
+        ["DOWN" /* KeyCode.DOWN */]: (coord) => coord.row === terminalDimensions.rowsPerBlock - 1
+            ? { row: 0 }
+            : { row: coord.row + 1 },
+        ["UP" /* KeyCode.UP */]: (coord) => coord.row === 0
+            ? { row: terminalDimensions.rowsPerBlock - 1 }
+            : { row: coord.row - 1 },
+        ["LEFT" /* KeyCode.LEFT */]: (coord) => coord.column === 0
+            ? {
+                column: terminalDimensions.columnsPerBlock - 1,
+                block: coord.block === 0 ? 1 : 0,
+            }
+            : {
+                column: coord.column - 1,
+            },
+        ["RIGHT" /* KeyCode.RIGHT */]: (coord) => coord.column === terminalDimensions.columnsPerBlock - 1
+            ? {
+                column: 0,
+                block: coord.block === 0 ? 1 : 0,
+            }
+            : {
+                column: coord.column + 1,
+            },
+    };
+    const getNextColumn = (movement) => {
+        const coordinates = domQuery.getActiveColumnCoordinates();
+        const guessBoundary = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
+        if (guessBoundary !== undefined && movement === "RIGHT" /* KeyCode.RIGHT */) {
+            return domQuery.by.contiguousIndex(guessBoundary.end + 1);
+        }
+        if (guessBoundary !== undefined && movement === "LEFT" /* KeyCode.LEFT */) {
+            return domQuery.by.contiguousIndex(guessBoundary.start - 1);
+        }
+        const nextCoordinates = { ...coordinates, ...move[movement](coordinates) };
+        return domQuery.by.columnRowAndBlock(nextCoordinates);
+    };
+    return function handleCursorMovement(keyCode) {
+        if (!domQuery.isActiveElementATerminalColumn()) {
+            domQuery.firstColumn().focus();
+            return;
+        }
+        getNextColumn(keyCode)?.focus();
+    };
+};
+
+const KeyMap = {
+    j: "DOWN" /* KeyCode.DOWN */,
+    ArrowDown: "DOWN" /* KeyCode.DOWN */,
+    ArrowUp: "UP" /* KeyCode.UP */,
+    k: "UP" /* KeyCode.UP */,
+    ArrowLeft: "LEFT" /* KeyCode.LEFT */,
+    h: "LEFT" /* KeyCode.LEFT */,
+    ArrowRight: "RIGHT" /* KeyCode.RIGHT */,
+    l: "RIGHT" /* KeyCode.RIGHT */,
+    Enter: "ENTER" /* KeyCode.ENTER */,
+};
+
+const inputHandler = (terminalDimensions, memoryDump) => {
+    const handleMovement = movement(terminalDimensions, memoryDump);
+    const handleContentSelection = contentSelection(memoryDump);
+    return function handleInput(event) {
+        const mappedKey = KeyMap[event.key];
+        if (mappedKey === undefined) {
+            return;
+        }
+        mappedKey === "ENTER" /* KeyCode.ENTER */
+            ? handleContentSelection()
+            : handleMovement(mappedKey);
+    };
+};
+
 const SecurityLevels = {
     L1: {
         passphraseLength: 5,
@@ -179,71 +264,6 @@ const getMemoryDump = (dumpSize, securityLevel) => {
         guessIndices,
         dumpedContent,
         getGuessBoundary,
-    };
-};
-
-const KEY_CODES = {
-    UP: "ArrowUp",
-    RIGHT: "ArrowRight",
-    DOWN: "ArrowDown",
-    LEFT: "ArrowLeft",
-};
-const movement = (terminalDimensions, memoryDump) => {
-    const move = {
-        [KEY_CODES.DOWN]: (coord) => coord.row === terminalDimensions.rowsPerBlock - 1
-            ? { row: 0 }
-            : { row: coord.row + 1 },
-        [KEY_CODES.UP]: (coord) => coord.row === 0
-            ? { row: terminalDimensions.rowsPerBlock - 1 }
-            : { row: coord.row - 1 },
-        [KEY_CODES.LEFT]: (coord) => coord.column === 0
-            ? {
-                column: terminalDimensions.columnsPerBlock - 1,
-                block: coord.block === 0 ? 1 : 0,
-            }
-            : {
-                column: coord.column - 1,
-            },
-        [KEY_CODES.RIGHT]: (coord) => coord.column === terminalDimensions.columnsPerBlock - 1
-            ? {
-                column: 0,
-                block: coord.block === 0 ? 1 : 0,
-            }
-            : {
-                column: coord.column + 1,
-            },
-    };
-    const getNextColumn = (movement) => {
-        const coordinates = domQuery.getActiveColumnCoordinates();
-        const guessBoundary = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
-        if (guessBoundary !== undefined && movement === KEY_CODES.RIGHT) {
-            return domQuery.by.contiguousIndex(guessBoundary.end + 1);
-        }
-        if (guessBoundary !== undefined && movement === KEY_CODES.LEFT) {
-            return domQuery.by.contiguousIndex(guessBoundary.start - 1);
-        }
-        const nextCoordinates = { ...coordinates, ...move[movement](coordinates) };
-        return domQuery.by.columnRowAndBlock(nextCoordinates);
-    };
-    return function handleCursorMovement(event) {
-        if (!domQuery.isActiveElementATerminalColumn()) {
-            domQuery.firstColumn().focus();
-            return;
-        }
-        if (Object.values(KEY_CODES).includes(event.key)) {
-            getNextColumn(event.key)?.focus();
-            return;
-        }
-        if (event.key === "Enter") {
-            const coordinates = domQuery.getActiveColumnCoordinates();
-            const boundaries = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
-            if (boundaries) {
-                console.log('Guess selected:', domQuery.guessText(boundaries));
-            }
-            else {
-                console.log('Garbage selected:', domQuery.by.contiguousIndex(coordinates.contiguousIndex)?.innerText);
-            }
-        }
     };
 };
 
@@ -304,6 +324,6 @@ domQuery.terminalContainer()?.append(dom.section({
     className: "terminal-block",
     children: secondBlockRows,
 }));
-document.onkeydown = movement(terminalDimensions, memoryDump);
+document.onkeydown = inputHandler(terminalDimensions, memoryDump);
 domQuery.firstColumn().focus();
 //# sourceMappingURL=terminal.js.map

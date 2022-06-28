@@ -2,8 +2,8 @@ import { boundedRange } from "./collections";
 import { formatMemoryDump, TerminalDimensions, TerminalRow } from "./content";
 import dom from "./dom";
 import domQuery from "./dom-query";
+import { inputHandler } from "./input/input-handler";
 import { getMemoryDump, SecurityLevels } from "./memory-dump";
-import { movement } from "./movement";
 
 const terminalDimensions: TerminalDimensions = {
   rowsPerBlock: 17,
@@ -82,5 +82,5 @@ domQuery.terminalContainer()?.append(
   })
 );
 
-document.onkeydown = movement(terminalDimensions, memoryDump);
+document.onkeydown = inputHandler(terminalDimensions, memoryDump)
 domQuery.firstColumn().focus();

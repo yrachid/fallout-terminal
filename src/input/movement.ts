@@ -1,28 +1,22 @@
-import { TerminalDimensions } from "./content";
-import domQuery, { ColumnCoordinates } from "./dom-query";
-import { MemoryDump } from "./memory-dump";
-
-const KEY_CODES = {
-  UP: "ArrowUp",
-  RIGHT: "ArrowRight",
-  DOWN: "ArrowDown",
-  LEFT: "ArrowLeft",
-};
+import { TerminalDimensions } from "../content";
+import domQuery, { ColumnCoordinates } from "../dom-query";
+import { MemoryDump } from "../memory-dump";
+import { KeyCode } from "./key-mapping";
 
 export const movement = (
   terminalDimensions: TerminalDimensions,
   memoryDump: MemoryDump
 ) => {
-  const move = {
-    [KEY_CODES.DOWN]: (coord: ColumnCoordinates) =>
+  const move: Record<string, Function> = {
+    [KeyCode.DOWN]: (coord: ColumnCoordinates) =>
       coord.row === terminalDimensions.rowsPerBlock - 1
         ? { row: 0 }
         : { row: coord.row + 1 },
-    [KEY_CODES.UP]: (coord: ColumnCoordinates) =>
+    [KeyCode.UP]: (coord: ColumnCoordinates) =>
       coord.row === 0
         ? { row: terminalDimensions.rowsPerBlock - 1 }
         : { row: coord.row - 1 },
-    [KEY_CODES.LEFT]: (coord: ColumnCoordinates) =>
+    [KeyCode.LEFT]: (coord: ColumnCoordinates) =>
       coord.column === 0
         ? {
             column: terminalDimensions.columnsPerBlock - 1,
@@ -31,7 +25,7 @@ export const movement = (
         : {
             column: coord.column - 1,
           },
-    [KEY_CODES.RIGHT]: (coord: ColumnCoordinates) =>
+    [KeyCode.RIGHT]: (coord: ColumnCoordinates) =>
       coord.column === terminalDimensions.columnsPerBlock - 1
         ? {
             column: 0,
@@ -42,18 +36,18 @@ export const movement = (
           },
   };
 
-  const getNextColumn = (movement: string) => {
+  const getNextColumn = (movement: KeyCode) => {
     const coordinates = domQuery.getActiveColumnCoordinates();
 
     const guessBoundary = memoryDump.getGuessBoundary(
       coordinates.contiguousIndex
     );
 
-    if (guessBoundary !== undefined && movement === KEY_CODES.RIGHT) {
+    if (guessBoundary !== undefined && movement === KeyCode.RIGHT) {
       return domQuery.by.contiguousIndex(guessBoundary.end + 1);
     }
 
-    if (guessBoundary !== undefined && movement === KEY_CODES.LEFT) {
+    if (guessBoundary !== undefined && movement === KeyCode.LEFT) {
       return domQuery.by.contiguousIndex(guessBoundary.start - 1);
     }
 
@@ -61,28 +55,12 @@ export const movement = (
     return domQuery.by.columnRowAndBlock(nextCoordinates);
   };
 
-  return function handleCursorMovement(event: KeyboardEvent) {
+  return function handleCursorMovement(keyCode: KeyCode) {
     if (!domQuery.isActiveElementATerminalColumn()) {
       domQuery.firstColumn().focus();
       return;
     }
 
-    if (Object.values(KEY_CODES).includes(event.key)) {
-      getNextColumn(event.key)?.focus();
-      return;
-    }
-
-    if (event.key === "Enter") {
-      const coordinates = domQuery.getActiveColumnCoordinates();
-      const boundaries = memoryDump.getGuessBoundary(
-        coordinates.contiguousIndex
-      );
-
-      if (boundaries) {
-        console.log('Guess selected:', domQuery.guessText(boundaries));
-      } else {
-        console.log('Garbage selected:', domQuery.by.contiguousIndex(coordinates.contiguousIndex)?.innerText);
-      }
-    }
+    getNextColumn(keyCode)?.focus();
   };
 };
