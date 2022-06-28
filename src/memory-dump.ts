@@ -9,7 +9,7 @@ export type SecurityLevel = {
 export const SecurityLevels: Record<string, SecurityLevel> = {
   L1: {
     passphraseLength: 5,
-    passphrasesDumped: 8,
+    passphrasesDumped: 12,
   },
 };
 
