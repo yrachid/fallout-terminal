@@ -4,6 +4,13 @@ export type ColumnRowAndBlock = {
   block: number;
 };
 
+export type ColumnCoordinates = {
+  row: number;
+  column: number;
+  block: number;
+  contiguousIndex: number;
+};
+
 const by = {
   contiguousIndex: (index: number) =>
     document.querySelector(
@@ -15,9 +22,24 @@ const by = {
     ) as HTMLElement | undefined,
 };
 
+const getActiveColumnCoordinates = () => {
+  const activeColumn = document.activeElement as HTMLElement;
+
+  return {
+    row: parseInt(activeColumn.dataset.row!),
+    column: parseInt(activeColumn.dataset.column!),
+    block: parseInt(activeColumn.dataset.block!),
+    contiguousIndex: parseInt(activeColumn.dataset.contiguousIndex!),
+  };
+};
+
 export default {
   by,
   firstColumn: () => document.querySelector(".terminal-column") as HTMLElement,
-  terminalContainer: () => document.querySelector("#block-container") as HTMLElement,
-  isActiveElementATerminalColumn: () => document.activeElement && document.activeElement.classList.contains("terminal-column")
+  terminalContainer: () =>
+    document.querySelector("#block-container") as HTMLElement,
+  isActiveElementATerminalColumn: () =>
+    document.activeElement &&
+    document.activeElement.classList.contains("terminal-column"),
+  getActiveColumnCoordinates,
 };
