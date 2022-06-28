@@ -1,6 +1,12 @@
 'use strict';
 
 const range = (limit, cb) => [...Array(limit).keys()].map(cb);
+const boundedRange = ({ start = 0, end }) => {
+    const placeholder = [...Array(Math.abs(end - start)).keys()];
+    return start < end
+        ? placeholder.map((n) => n + start).concat([end])
+        : placeholder.map((n) => -(n - start)).concat([end]);
+};
 
 const GARBAGE_CHARACTERS = [
     '!',
@@ -96,11 +102,22 @@ const by = {
     contiguousIndex: (index) => document.querySelector(`.terminal-column[data-contiguous-index="${index}"]`),
     columnRowAndBlock: (data) => document.querySelector(`.terminal-column[data-column="${data.column}"][data-row="${data.row}"][data-block="${data.block}"]`),
 };
+const getActiveColumnCoordinates = () => {
+    const activeColumn = document.activeElement;
+    return {
+        row: parseInt(activeColumn.dataset.row),
+        column: parseInt(activeColumn.dataset.column),
+        block: parseInt(activeColumn.dataset.block),
+        contiguousIndex: parseInt(activeColumn.dataset.contiguousIndex),
+    };
+};
 var domQuery = {
     by,
     firstColumn: () => document.querySelector(".terminal-column"),
     terminalContainer: () => document.querySelector("#block-container"),
-    isActiveElementATerminalColumn: () => document.activeElement && document.activeElement.classList.contains("terminal-column")
+    isActiveElementATerminalColumn: () => document.activeElement &&
+        document.activeElement.classList.contains("terminal-column"),
+    getActiveColumnCoordinates,
 };
 
 const SecurityLevels = {
@@ -166,30 +183,54 @@ const KEY_CODES = {
     DOWN: "ArrowDown",
     LEFT: "ArrowLeft",
 };
-const move = {
-    [KEY_CODES.DOWN]: (coord) => coord.row === terminalDimensions.rowsPerBlock - 1
-        ? { row: 0 }
-        : { row: coord.row + 1 },
-    [KEY_CODES.UP]: (coord) => coord.row === 0
-        ? { row: terminalDimensions.rowsPerBlock - 1 }
-        : { row: coord.row - 1 },
-    [KEY_CODES.LEFT]: (coord) => coord.column === 0
-        ? {
-            column: terminalDimensions.columnsPerBlock - 1,
-            block: coord.block === 0 ? 1 : 0,
+const movement = (terminalDimensions, memoryDump) => {
+    const move = {
+        [KEY_CODES.DOWN]: (coord) => coord.row === terminalDimensions.rowsPerBlock - 1
+            ? { row: 0 }
+            : { row: coord.row + 1 },
+        [KEY_CODES.UP]: (coord) => coord.row === 0
+            ? { row: terminalDimensions.rowsPerBlock - 1 }
+            : { row: coord.row - 1 },
+        [KEY_CODES.LEFT]: (coord) => coord.column === 0
+            ? {
+                column: terminalDimensions.columnsPerBlock - 1,
+                block: coord.block === 0 ? 1 : 0,
+            }
+            : {
+                column: coord.column - 1,
+            },
+        [KEY_CODES.RIGHT]: (coord) => coord.column === terminalDimensions.columnsPerBlock - 1
+            ? {
+                column: 0,
+                block: coord.block === 0 ? 1 : 0,
+            }
+            : {
+                column: coord.column + 1,
+            },
+    };
+    const getNextColumn = (movement) => {
+        const coordinates = domQuery.getActiveColumnCoordinates();
+        const guessBoundary = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
+        if (guessBoundary !== undefined && movement === KEY_CODES.RIGHT) {
+            return domQuery.by.contiguousIndex(guessBoundary.end + 1);
         }
-        : {
-            column: coord.column - 1,
-        },
-    [KEY_CODES.RIGHT]: (coord) => coord.column === terminalDimensions.columnsPerBlock - 1
-        ? {
-            column: 0,
-            block: coord.block === 0 ? 1 : 0,
+        if (guessBoundary !== undefined && movement === KEY_CODES.LEFT) {
+            return domQuery.by.contiguousIndex(guessBoundary.start - 1);
         }
-        : {
-            column: coord.column + 1,
-        },
+        const nextCoordinates = { ...coordinates, ...move[movement](coordinates) };
+        return domQuery.by.columnRowAndBlock(nextCoordinates);
+    };
+    return function handleCursorMovement(event) {
+        if (!domQuery.isActiveElementATerminalColumn()) {
+            domQuery.firstColumn().focus();
+            return;
+        }
+        if (Object.values(KEY_CODES).includes(event.key)) {
+            getNextColumn(event.key)?.focus();
+        }
+    };
 };
+
 const terminalDimensions = {
     rowsPerBlock: 17,
     columnsPerBlock: 12,
@@ -223,19 +264,15 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
                 onFocus: () => {
                     const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
                     if (guessBounds !== undefined) {
-                        for (let i = guessBounds.start; i <= guessBounds.end; i++) {
-                            const col = domQuery.by.contiguousIndex(i);
-                            col?.classList.add("active-column");
-                        }
+                        boundedRange(guessBounds).forEach((i) => domQuery.by.contiguousIndex(i)?.classList.add("active-column"));
                     }
                 },
                 onBlur: () => {
                     const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
                     if (guessBounds !== undefined) {
-                        for (let i = guessBounds.start; i <= guessBounds.end; i++) {
-                            const col = domQuery.by.contiguousIndex(i);
-                            col?.classList.remove("active-column");
-                        }
+                        boundedRange(guessBounds).forEach((i) => domQuery.by
+                            .contiguousIndex(i)
+                            ?.classList.remove("active-column"));
                     }
                 },
             });
@@ -244,43 +281,13 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
 }));
 const firstBlockRows = buildBlockOfRows(matrix.rowsPerBlock.firstBlock, 0);
 const secondBlockRows = buildBlockOfRows(matrix.rowsPerBlock.secondBlock, 1);
-const terminalBlockContainer = domQuery.terminalContainer();
-terminalBlockContainer?.append(dom.section({
+domQuery.terminalContainer()?.append(dom.section({
     className: "terminal-block",
     children: firstBlockRows,
 }), dom.section({
     className: "terminal-block",
     children: secondBlockRows,
 }));
-document.onkeydown = (event) => {
-    if (!domQuery.isActiveElementATerminalColumn()) {
-        domQuery.firstColumn().focus();
-        return;
-    }
-    const activeElement = document.activeElement;
-    if (Object.values(KEY_CODES).includes(event.key)) {
-        getNextColumn(activeElement, event.key)?.focus();
-    }
-};
-const getNextColumn = (activeElement, movement) => {
-    const coordinates = getColumnCoordinates(activeElement);
-    const guessBoundary = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
-    if (guessBoundary !== undefined && movement === KEY_CODES.RIGHT) {
-        return domQuery.by.contiguousIndex(guessBoundary.end + 1);
-    }
-    if (guessBoundary !== undefined && movement === KEY_CODES.LEFT) {
-        return domQuery.by.contiguousIndex(guessBoundary.start - 1);
-    }
-    const nextCoordinates = { ...coordinates, ...move[movement](coordinates) };
-    return domQuery.by.columnRowAndBlock(nextCoordinates);
-};
-const getColumnCoordinates = (activeColumn) => {
-    return {
-        row: parseInt(activeColumn.dataset.row),
-        column: parseInt(activeColumn.dataset.column),
-        block: parseInt(activeColumn.dataset.block),
-        contiguousIndex: parseInt(activeColumn.dataset.contiguousIndex),
-    };
-};
+document.onkeydown = movement(terminalDimensions, memoryDump);
 domQuery.firstColumn().focus();
 //# sourceMappingURL=terminal.js.map
