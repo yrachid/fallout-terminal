@@ -1,5 +1,6 @@
 import { TerminalDimensions } from "../content";
-import domQuery, { ColumnCoordinates } from "../dom-query";
+import dom from "../dom";
+import { ColumnCoordinates } from "../dom/query";
 import { MemoryDump } from "../memory-dump";
 import { KeyCode } from "./key-mapping";
 
@@ -8,6 +9,15 @@ export const movement = (
   memoryDump: MemoryDump
 ) => {
   const move: Record<string, Function> = {
+    [KeyCode.BOTTOM]: () => ({
+      row: terminalDimensions.rowsPerBlock - 1,
+    }),
+    [KeyCode.LINE_START]: () => ({
+      column: 0,
+    }),
+    [KeyCode.LINE_END]: () => ({
+      column: terminalDimensions.columnsPerBlock - 1,
+    }),
     [KeyCode.DOWN]: (coord: ColumnCoordinates) =>
       coord.row === terminalDimensions.rowsPerBlock - 1
         ? { row: 0 }
@@ -37,27 +47,27 @@ export const movement = (
   };
 
   const getNextColumn = (movement: KeyCode) => {
-    const coordinates = domQuery.getActiveColumnCoordinates();
+    const coordinates = dom.query.getActiveColumnCoordinates();
 
     const guessBoundary = memoryDump.getGuessBoundary(
       coordinates.contiguousIndex
     );
 
     if (guessBoundary !== undefined && movement === KeyCode.RIGHT) {
-      return domQuery.by.contiguousIndex(guessBoundary.end + 1);
+      return dom.query.by.contiguousIndex(guessBoundary.end + 1);
     }
 
     if (guessBoundary !== undefined && movement === KeyCode.LEFT) {
-      return domQuery.by.contiguousIndex(guessBoundary.start - 1);
+      return dom.query.by.contiguousIndex(guessBoundary.start - 1);
     }
 
     const nextCoordinates = { ...coordinates, ...move[movement](coordinates) };
-    return domQuery.by.columnRowAndBlock(nextCoordinates);
+    return dom.query.by.columnRowAndBlock(nextCoordinates);
   };
 
   return function handleCursorMovement(keyCode: KeyCode) {
-    if (!domQuery.isActiveElementATerminalColumn()) {
-      domQuery.firstColumn().focus();
+    if (!dom.query.isActiveElementATerminalColumn()) {
+      dom.query.firstColumn().focus();
       return;
     }
 

@@ -1,5 +1,5 @@
-import { boundedRange } from "./collections";
-import { GuessBoundary } from "./memory-dump";
+import { boundedRange } from "../collections";
+import { GuessBoundary } from "../memory-dump";
 
 export type ColumnRowAndBlock = {
   column: number;

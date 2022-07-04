@@ -1,8 +1,7 @@
 import { boundedRange } from "./collections";
 import { formatMemoryDump, TerminalDimensions, TerminalRow } from "./content";
 import dom from "./dom";
-import domQuery from "./dom-query";
-import { inputHandler } from "./input/input-handler";
+import input from "./input";
 import { getMemoryDump, SecurityLevels } from "./memory-dump";
 
 const terminalDimensions: TerminalDimensions = {
@@ -19,10 +18,10 @@ const matrix = formatMemoryDump(terminalDimensions, memoryDump);
 
 const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
   rowContent.map((row, rowIndex) =>
-    dom.p({
+    dom.creation.p({
       className: "terminal-line",
       children: [
-        dom.span({
+        dom.creation.span({
           className: "memory-address",
           content: row.memoryAddress,
         }),
@@ -34,7 +33,11 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
               (terminalDimensions.columnsPerBlock *
                 terminalDimensions.rowsPerBlock);
 
-          return dom.span({
+          const markGuesses = () => () => {
+
+          }
+
+          return dom.creation.span({
             className: "terminal-column",
             tabIndex: 0,
             content: c,
@@ -48,7 +51,9 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
               const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
               if (guessBounds !== undefined) {
                 boundedRange(guessBounds).forEach((i) =>
-                  domQuery.by.contiguousIndex(i)?.classList.add("active-column")
+                  dom.query.by
+                    .contiguousIndex(i)
+                    ?.classList.add("active-column")
                 );
               }
             },
@@ -56,7 +61,7 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
               const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
               if (guessBounds !== undefined) {
                 boundedRange(guessBounds).forEach((i) =>
-                  domQuery.by
+                  dom.query.by
                     .contiguousIndex(i)
                     ?.classList.remove("active-column")
                 );
@@ -71,16 +76,16 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
 const firstBlockRows = buildBlockOfRows(matrix.rowsPerBlock.firstBlock, 0);
 const secondBlockRows = buildBlockOfRows(matrix.rowsPerBlock.secondBlock, 1);
 
-domQuery.terminalContainer()?.append(
-  dom.section({
+dom.query.terminalContainer()?.append(
+  dom.creation.section({
     className: "terminal-block",
     children: firstBlockRows,
   }),
-  dom.section({
+  dom.creation.section({
     className: "terminal-block",
     children: secondBlockRows,
   })
 );
 
-document.onkeydown = inputHandler(terminalDimensions, memoryDump)
-domQuery.firstColumn().focus();
+input.registerInputHandlers(terminalDimensions, memoryDump);
+dom.query.firstColumn().focus();

@@ -1,3 +1,5 @@
+import { ColumnCoordinates } from "./query";
+
 type Span = {
   className: string;
   content: string;

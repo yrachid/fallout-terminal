@@ -69,6 +69,33 @@ const formatMemoryDump = (dimensions, memoryDump) => {
     };
 };
 
+const by = {
+    contiguousIndex: (index) => document.querySelector(`.terminal-column[data-contiguous-index="${index}"]`),
+    columnRowAndBlock: (data) => document.querySelector(`.terminal-column[data-column="${data.column}"][data-row="${data.row}"][data-block="${data.block}"]`),
+};
+const getActiveColumnCoordinates = () => {
+    const activeColumn = document.activeElement;
+    return {
+        row: parseInt(activeColumn.dataset.row),
+        column: parseInt(activeColumn.dataset.column),
+        block: parseInt(activeColumn.dataset.block),
+        contiguousIndex: parseInt(activeColumn.dataset.contiguousIndex),
+    };
+};
+const guessText = (bounds) => boundedRange(bounds)
+    .map((i) => by.contiguousIndex(i))
+    .map((column) => column?.innerText)
+    .join("");
+var query = {
+    by,
+    firstColumn: () => document.querySelector(".terminal-column"),
+    terminalContainer: () => document.querySelector("#block-container"),
+    isActiveElementATerminalColumn: () => document.activeElement &&
+        document.activeElement.classList.contains("terminal-column"),
+    getActiveColumnCoordinates,
+    guessText,
+};
+
 const span = (config) => {
     const span = document.createElement("span");
     span.className = config.className;
@@ -96,50 +123,37 @@ const createElement = (name) => (config) => {
 };
 const p = createElement("p");
 const section = createElement("section");
-var dom = { span, p, section };
+var creation = { span, p, section };
 
-const by = {
-    contiguousIndex: (index) => document.querySelector(`.terminal-column[data-contiguous-index="${index}"]`),
-    columnRowAndBlock: (data) => document.querySelector(`.terminal-column[data-column="${data.column}"][data-row="${data.row}"][data-block="${data.block}"]`),
-};
-const getActiveColumnCoordinates = () => {
-    const activeColumn = document.activeElement;
-    return {
-        row: parseInt(activeColumn.dataset.row),
-        column: parseInt(activeColumn.dataset.column),
-        block: parseInt(activeColumn.dataset.block),
-        contiguousIndex: parseInt(activeColumn.dataset.contiguousIndex),
-    };
-};
-const guessText = (bounds) => boundedRange(bounds)
-    .map((i) => by.contiguousIndex(i))
-    .map((column) => column?.innerText)
-    .join("");
-var domQuery = {
-    by,
-    firstColumn: () => document.querySelector(".terminal-column"),
-    terminalContainer: () => document.querySelector("#block-container"),
-    isActiveElementATerminalColumn: () => document.activeElement &&
-        document.activeElement.classList.contains("terminal-column"),
-    getActiveColumnCoordinates,
-    guessText,
+var dom = {
+    creation,
+    query
 };
 
 const contentSelection = (memoryDump) => {
     return function handleContentSelection() {
-        const coordinates = domQuery.getActiveColumnCoordinates();
+        const coordinates = dom.query.getActiveColumnCoordinates();
         const boundaries = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
         if (boundaries) {
-            console.log("Guess selected:", domQuery.guessText(boundaries));
+            console.log("Guess selected:", dom.query.guessText(boundaries));
         }
         else {
-            console.log("Garbage selected:", domQuery.by.contiguousIndex(coordinates.contiguousIndex)?.innerText);
+            console.log("Garbage selected:", dom.query.by.contiguousIndex(coordinates.contiguousIndex)?.innerText);
         }
     };
 };
 
 const movement = (terminalDimensions, memoryDump) => {
     const move = {
+        ["BOTTOM" /* KeyCode.BOTTOM */]: () => ({
+            row: terminalDimensions.rowsPerBlock - 1,
+        }),
+        ["LINE_START" /* KeyCode.LINE_START */]: () => ({
+            column: 0,
+        }),
+        ["LINE_END" /* KeyCode.LINE_END */]: () => ({
+            column: terminalDimensions.columnsPerBlock - 1,
+        }),
         ["DOWN" /* KeyCode.DOWN */]: (coord) => coord.row === terminalDimensions.rowsPerBlock - 1
             ? { row: 0 }
             : { row: coord.row + 1 },
@@ -164,20 +178,20 @@ const movement = (terminalDimensions, memoryDump) => {
             },
     };
     const getNextColumn = (movement) => {
-        const coordinates = domQuery.getActiveColumnCoordinates();
+        const coordinates = dom.query.getActiveColumnCoordinates();
         const guessBoundary = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
         if (guessBoundary !== undefined && movement === "RIGHT" /* KeyCode.RIGHT */) {
-            return domQuery.by.contiguousIndex(guessBoundary.end + 1);
+            return dom.query.by.contiguousIndex(guessBoundary.end + 1);
         }
         if (guessBoundary !== undefined && movement === "LEFT" /* KeyCode.LEFT */) {
-            return domQuery.by.contiguousIndex(guessBoundary.start - 1);
+            return dom.query.by.contiguousIndex(guessBoundary.start - 1);
         }
         const nextCoordinates = { ...coordinates, ...move[movement](coordinates) };
-        return domQuery.by.columnRowAndBlock(nextCoordinates);
+        return dom.query.by.columnRowAndBlock(nextCoordinates);
     };
     return function handleCursorMovement(keyCode) {
-        if (!domQuery.isActiveElementATerminalColumn()) {
-            domQuery.firstColumn().focus();
+        if (!dom.query.isActiveElementATerminalColumn()) {
+            dom.query.firstColumn().focus();
             return;
         }
         getNextColumn(keyCode)?.focus();
@@ -185,15 +199,20 @@ const movement = (terminalDimensions, memoryDump) => {
 };
 
 const KeyMap = {
-    j: "DOWN" /* KeyCode.DOWN */,
+    "0": "LINE_START" /* KeyCode.LINE_START */,
+    $: "LINE_END" /* KeyCode.LINE_END */,
     ArrowDown: "DOWN" /* KeyCode.DOWN */,
-    ArrowUp: "UP" /* KeyCode.UP */,
-    k: "UP" /* KeyCode.UP */,
     ArrowLeft: "LEFT" /* KeyCode.LEFT */,
-    h: "LEFT" /* KeyCode.LEFT */,
     ArrowRight: "RIGHT" /* KeyCode.RIGHT */,
-    l: "RIGHT" /* KeyCode.RIGHT */,
+    ArrowUp: "UP" /* KeyCode.UP */,
     Enter: "ENTER" /* KeyCode.ENTER */,
+    G: "BOTTOM" /* KeyCode.BOTTOM */,
+    b: "LEFT" /* KeyCode.LEFT */,
+    h: "LEFT" /* KeyCode.LEFT */,
+    j: "DOWN" /* KeyCode.DOWN */,
+    k: "UP" /* KeyCode.UP */,
+    l: "RIGHT" /* KeyCode.RIGHT */,
+    w: "RIGHT" /* KeyCode.RIGHT */,
 };
 
 const inputHandler = (terminalDimensions, memoryDump) => {
@@ -204,10 +223,15 @@ const inputHandler = (terminalDimensions, memoryDump) => {
         if (mappedKey === undefined) {
             return;
         }
+        console.log('Key', event.key);
         mappedKey === "ENTER" /* KeyCode.ENTER */
             ? handleContentSelection()
             : handleMovement(mappedKey);
     };
+};
+
+var input = {
+    registerInputHandlers: (terminalDimensions, memoryDump) => (document.onkeydown = inputHandler(terminalDimensions, memoryDump)),
 };
 
 const SecurityLevels = {
@@ -274,10 +298,10 @@ const terminalDimensions = {
 const memoryDumpSize = terminalDimensions.columnsPerBlock * terminalDimensions.rowsPerBlock * 2 + 1;
 const memoryDump = getMemoryDump(memoryDumpSize, SecurityLevels.L1);
 const matrix = formatMemoryDump(terminalDimensions, memoryDump);
-const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowIndex) => dom.p({
+const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowIndex) => dom.creation.p({
     className: "terminal-line",
     children: [
-        dom.span({
+        dom.creation.span({
             className: "memory-address",
             content: row.memoryAddress,
         }),
@@ -287,7 +311,7 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
                 blockIndex *
                     (terminalDimensions.columnsPerBlock *
                         terminalDimensions.rowsPerBlock);
-            return dom.span({
+            return dom.creation.span({
                 className: "terminal-column",
                 tabIndex: 0,
                 content: c,
@@ -300,13 +324,15 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
                 onFocus: () => {
                     const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
                     if (guessBounds !== undefined) {
-                        boundedRange(guessBounds).forEach((i) => domQuery.by.contiguousIndex(i)?.classList.add("active-column"));
+                        boundedRange(guessBounds).forEach((i) => dom.query.by
+                            .contiguousIndex(i)
+                            ?.classList.add("active-column"));
                     }
                 },
                 onBlur: () => {
                     const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
                     if (guessBounds !== undefined) {
-                        boundedRange(guessBounds).forEach((i) => domQuery.by
+                        boundedRange(guessBounds).forEach((i) => dom.query.by
                             .contiguousIndex(i)
                             ?.classList.remove("active-column"));
                     }
@@ -317,13 +343,13 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
 }));
 const firstBlockRows = buildBlockOfRows(matrix.rowsPerBlock.firstBlock, 0);
 const secondBlockRows = buildBlockOfRows(matrix.rowsPerBlock.secondBlock, 1);
-domQuery.terminalContainer()?.append(dom.section({
+dom.query.terminalContainer()?.append(dom.creation.section({
     className: "terminal-block",
     children: firstBlockRows,
-}), dom.section({
+}), dom.creation.section({
     className: "terminal-block",
     children: secondBlockRows,
 }));
-document.onkeydown = inputHandler(terminalDimensions, memoryDump);
-domQuery.firstColumn().focus();
+input.registerInputHandlers(terminalDimensions, memoryDump);
+dom.query.firstColumn().focus();
 //# sourceMappingURL=terminal.js.map

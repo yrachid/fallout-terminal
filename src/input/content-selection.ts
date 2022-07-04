@@ -1,17 +1,17 @@
-import domQuery from "../dom-query";
+import dom from "../dom";
 import { MemoryDump } from "../memory-dump";
 
 export const contentSelection = (memoryDump: MemoryDump) => {
   return function handleContentSelection() {
-    const coordinates = domQuery.getActiveColumnCoordinates();
+    const coordinates = dom.query.getActiveColumnCoordinates();
     const boundaries = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
 
     if (boundaries) {
-      console.log("Guess selected:", domQuery.guessText(boundaries));
+      console.log("Guess selected:", dom.query.guessText(boundaries));
     } else {
       console.log(
         "Garbage selected:",
-        domQuery.by.contiguousIndex(coordinates.contiguousIndex)?.innerText
+        dom.query.by.contiguousIndex(coordinates.contiguousIndex)?.innerText
       );
     }
   };
