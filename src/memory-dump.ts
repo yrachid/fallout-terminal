@@ -1,5 +1,6 @@
 import { range } from "./collections";
 import rng from "./rng";
+import { passphrases } from "./passphrases";
 
 export type SecurityLevel = {
   passphraseLength: number;
@@ -24,28 +25,11 @@ export type MemoryDump = {
   getGuessBoundary: (index: number) => GuessBoundary | undefined;
 };
 
-const GUESSES = [
-  "WHICH",
-  "OTHER",
-  "ABOUT",
-  "MAYBE",
-  "LUNCH",
-  "EVERY",
-  "THEIR",
-  "FAITH",
-  "FEVER",
-  "HEADS",
-  "CRAZY",
-  "GYOZA",
-  "PROXY",
-  "CHECK",
-];
-
 const generateGuesses = (guessCount: number) => {
   const guesses = new Set();
 
   while (guesses.size < guessCount) {
-    const nextItem = rng.randomItemOf(GUESSES);
+    const nextItem = rng.randomItemOf(passphrases);
     if (!guesses.has(nextItem)) {
       guesses.add(nextItem);
     }
