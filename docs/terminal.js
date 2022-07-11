@@ -83,11 +83,12 @@ const getActiveColumnCoordinates = () => {
     };
 };
 const cursorContentHolder = () => document.querySelector("#prompt-cursor-content");
-const selectedContent = () => document.querySelector("#selected-content");
+const promptHistory = () => document.querySelector("#prompt-history");
 const guessText = (bounds) => boundedRange(bounds)
     .map((i) => by.contiguousIndex(i))
     .map((column) => column?.innerText)
     .join("");
+const textAt = (contiguousIndex) => by.contiguousIndex(contiguousIndex)?.innerText;
 var query = {
     by,
     firstColumn: () => document.querySelector(".terminal-column"),
@@ -97,7 +98,8 @@ var query = {
     getActiveColumnCoordinates,
     guessText,
     cursorContentHolder,
-    selectedContent,
+    promptHistory,
+    textAt,
 };
 
 const span = (config) => {
@@ -136,38 +138,51 @@ const p = createElement("p");
 const section = createElement("section");
 var creation = { span, p, section };
 
+const toggleColumnHighlight = (boundaries) => {
+    boundedRange(boundaries).forEach((i) => query.by.contiguousIndex(i)?.classList.toggle("active-column"));
+};
+const setCursorText = (text) => {
+    query.cursorContentHolder().innerText = text;
+};
+const setCursorTextFromGarbage = (columnContiguousIndex) => setCursorText(query.textAt(columnContiguousIndex) ?? "");
+const setCursorTextFromGuess = (boundaries) => setCursorText(query.guessText(boundaries));
+const registerRejectedGuess = (boundaries) => {
+    const promptHistory = query.promptHistory();
+    const guessText = creation.p({
+        text: `>${query.guessText(boundaries)}`,
+    });
+    const feedback = creation.p({
+        text: `>Entry denied.`,
+    });
+    const likeness = creation.p({
+        text: `>Likeness=1.`,
+    });
+    promptHistory.append(guessText, feedback, likeness);
+};
+const registerGarbageSelection = (contiguousIndex) => query.promptHistory().append(creation.p({
+    text: `>${query.textAt(contiguousIndex)}`,
+}));
+var update = {
+    toggleColumnHighlight,
+    setCursorTextFromGarbage,
+    setCursorTextFromGuess,
+    registerRejectedGuess,
+    registerGarbageSelection
+};
+
 var dom = {
     creation,
-    query
+    query,
+    update
 };
 
 const contentSelection = (memoryDump) => {
     return function handleContentSelection() {
         const coordinates = dom.query.getActiveColumnCoordinates();
         const boundaries = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
-        const contentContainer = dom.query.selectedContent();
-        if (boundaries) {
-            const selectedGuess = dom.creation.p({
-                text: `>${dom.query.guessText(boundaries)}`,
-            });
-            const feedback = dom.creation.p({
-                text: `>Entry denied.`,
-            });
-            const likeness = dom.creation.p({
-                text: `>Likeness=1.`,
-            });
-            contentContainer.append(selectedGuess);
-            contentContainer.append(feedback);
-            contentContainer.append(likeness);
-            console.log("Guess selected:", dom.query.guessText(boundaries));
-        }
-        else {
-            const selectedGarbage = dom.creation.p({
-                text: `>${dom.query.by.contiguousIndex(coordinates.contiguousIndex)?.innerText}`,
-            });
-            contentContainer.append(selectedGarbage);
-            console.log("Garbage selected:", dom.query.by.contiguousIndex(coordinates.contiguousIndex)?.innerText);
-        }
+        boundaries
+            ? dom.update.registerRejectedGuess(boundaries)
+            : dom.update.registerGarbageSelection(coordinates.contiguousIndex);
     };
 };
 
@@ -6937,7 +6952,6 @@ const terminalDimensions = {
 const memoryDumpSize = terminalDimensions.columnsPerBlock * terminalDimensions.rowsPerBlock * 2 + 1;
 const memoryDump = getMemoryDump(memoryDumpSize, SecurityLevels.L1);
 const matrix = formatMemoryDump(terminalDimensions, memoryDump);
-const cursorContent = dom.query.cursorContentHolder();
 const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowIndex) => dom.creation.p({
     className: "terminal-line",
     children: [
@@ -6964,21 +6978,17 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
                 onFocus: () => {
                     const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
                     if (guessBounds !== undefined) {
-                        boundedRange(guessBounds).forEach((i) => dom.query.by
-                            .contiguousIndex(i)
-                            ?.classList.add("active-column"));
-                        cursorContent.innerText = dom.query.guessText(guessBounds);
+                        dom.update.toggleColumnHighlight(guessBounds);
+                        dom.update.setCursorTextFromGuess(guessBounds);
                     }
                     else {
-                        cursorContent.innerText = dom.query.by.contiguousIndex(contiguousIndex)?.innerText ?? '';
+                        dom.update.setCursorTextFromGarbage(contiguousIndex);
                     }
                 },
                 onBlur: () => {
                     const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
                     if (guessBounds !== undefined) {
-                        boundedRange(guessBounds).forEach((i) => dom.query.by
-                            .contiguousIndex(i)
-                            ?.classList.remove("active-column"));
+                        dom.update.toggleColumnHighlight(guessBounds);
                     }
                 },
             });

@@ -1,4 +1,3 @@
-import { boundedRange } from "./collections";
 import { formatMemoryDump, TerminalDimensions, TerminalRow } from "./content";
 import dom from "./dom";
 import input from "./input";
@@ -15,8 +14,6 @@ const memoryDumpSize =
 const memoryDump = getMemoryDump(memoryDumpSize, SecurityLevels.L1);
 
 const matrix = formatMemoryDump(terminalDimensions, memoryDump);
-
-const cursorContent = dom.query.cursorContentHolder();
 
 const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
   rowContent.map((row, rowIndex) =>
@@ -47,25 +44,18 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
             },
             onFocus: () => {
               const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
+
               if (guessBounds !== undefined) {
-                boundedRange(guessBounds).forEach((i) =>
-                  dom.query.by
-                    .contiguousIndex(i)
-                    ?.classList.add("active-column")
-                );
-                cursorContent.innerText = dom.query.guessText(guessBounds);
+                dom.update.toggleColumnHighlight(guessBounds);
+                dom.update.setCursorTextFromGuess(guessBounds);
               } else {
-                cursorContent.innerText = dom.query.by.contiguousIndex(contiguousIndex)?.innerText ?? '';
+                dom.update.setCursorTextFromGarbage(contiguousIndex);
               }
             },
             onBlur: () => {
               const guessBounds = memoryDump.getGuessBoundary(contiguousIndex);
               if (guessBounds !== undefined) {
-                boundedRange(guessBounds).forEach((i) =>
-                  dom.query.by
-                    .contiguousIndex(i)
-                    ?.classList.remove("active-column")
-                );
+                dom.update.toggleColumnHighlight(guessBounds);
               }
             },
           });

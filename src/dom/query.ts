@@ -39,14 +39,17 @@ const getActiveColumnCoordinates = () => {
 const cursorContentHolder = () =>
   document.querySelector("#prompt-cursor-content") as HTMLElement;
 
-const selectedContent = () =>
-  document.querySelector("#selected-content") as HTMLElement;
+const promptHistory = () =>
+  document.querySelector("#prompt-history") as HTMLElement;
 
 const guessText = (bounds: GuessBoundary) =>
   boundedRange(bounds)
     .map((i) => by.contiguousIndex(i))
     .map((column) => column?.innerText)
     .join("");
+
+const textAt = (contiguousIndex: number) =>
+  by.contiguousIndex(contiguousIndex)?.innerText;
 
 export default {
   by,
@@ -59,5 +62,6 @@ export default {
   getActiveColumnCoordinates,
   guessText,
   cursorContentHolder,
-  selectedContent,
+  promptHistory,
+  textAt,
 };
