@@ -82,6 +82,8 @@ const getActiveColumnCoordinates = () => {
         contiguousIndex: parseInt(activeColumn.dataset.contiguousIndex),
     };
 };
+const cursorContentHolder = () => document.querySelector("#prompt-cursor-content");
+const selectedContent = () => document.querySelector("#selected-content");
 const guessText = (bounds) => boundedRange(bounds)
     .map((i) => by.contiguousIndex(i))
     .map((column) => column?.innerText)
@@ -94,6 +96,8 @@ var query = {
         document.activeElement.classList.contains("terminal-column"),
     getActiveColumnCoordinates,
     guessText,
+    cursorContentHolder,
+    selectedContent,
 };
 
 const span = (config) => {
@@ -107,18 +111,25 @@ const span = (config) => {
         span.setAttribute(`data-${key}`, value.toString());
     });
     if (config.onFocus !== undefined) {
-        span.addEventListener('focus', config.onFocus);
+        span.addEventListener("focus", config.onFocus);
     }
     if (config.onBlur !== undefined) {
-        span.addEventListener('blur', config.onBlur);
+        span.addEventListener("blur", config.onBlur);
     }
     span.appendChild(content);
     return span;
 };
 const createElement = (name) => (config) => {
     const element = document.createElement(name);
-    element.className = config.className;
-    element.append(...config.children);
+    if (config.className) {
+        element.className = config.className;
+    }
+    if (config.children) {
+        element.append(...config.children);
+    }
+    if (config.text) {
+        element.innerText = config.text;
+    }
     return element;
 };
 const p = createElement("p");
@@ -134,10 +145,27 @@ const contentSelection = (memoryDump) => {
     return function handleContentSelection() {
         const coordinates = dom.query.getActiveColumnCoordinates();
         const boundaries = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
+        const contentContainer = dom.query.selectedContent();
         if (boundaries) {
+            const selectedGuess = dom.creation.p({
+                text: `>${dom.query.guessText(boundaries)}`,
+            });
+            const feedback = dom.creation.p({
+                text: `>Entry denied.`,
+            });
+            const likeness = dom.creation.p({
+                text: `>Likeness=1.`,
+            });
+            contentContainer.append(selectedGuess);
+            contentContainer.append(feedback);
+            contentContainer.append(likeness);
             console.log("Guess selected:", dom.query.guessText(boundaries));
         }
         else {
+            const selectedGarbage = dom.creation.p({
+                text: `>${dom.query.by.contiguousIndex(coordinates.contiguousIndex)?.innerText}`,
+            });
+            contentContainer.append(selectedGarbage);
             console.log("Garbage selected:", dom.query.by.contiguousIndex(coordinates.contiguousIndex)?.innerText);
         }
     };
@@ -6909,6 +6937,7 @@ const terminalDimensions = {
 const memoryDumpSize = terminalDimensions.columnsPerBlock * terminalDimensions.rowsPerBlock * 2 + 1;
 const memoryDump = getMemoryDump(memoryDumpSize, SecurityLevels.L1);
 const matrix = formatMemoryDump(terminalDimensions, memoryDump);
+const cursorContent = dom.query.cursorContentHolder();
 const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowIndex) => dom.creation.p({
     className: "terminal-line",
     children: [
@@ -6938,6 +6967,10 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
                         boundedRange(guessBounds).forEach((i) => dom.query.by
                             .contiguousIndex(i)
                             ?.classList.add("active-column"));
+                        cursorContent.innerText = dom.query.guessText(guessBounds);
+                    }
+                    else {
+                        cursorContent.innerText = dom.query.by.contiguousIndex(contiguousIndex)?.innerText ?? '';
                     }
                 },
                 onBlur: () => {

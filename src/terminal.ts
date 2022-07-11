@@ -16,6 +16,8 @@ const memoryDump = getMemoryDump(memoryDumpSize, SecurityLevels.L1);
 
 const matrix = formatMemoryDump(terminalDimensions, memoryDump);
 
+const cursorContent = dom.query.cursorContentHolder();
+
 const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
   rowContent.map((row, rowIndex) =>
     dom.creation.p({
@@ -32,10 +34,6 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
             blockIndex *
               (terminalDimensions.columnsPerBlock *
                 terminalDimensions.rowsPerBlock);
-
-          const markGuesses = () => () => {
-
-          }
 
           return dom.creation.span({
             className: "terminal-column",
@@ -55,6 +53,9 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
                     .contiguousIndex(i)
                     ?.classList.add("active-column")
                 );
+                cursorContent.innerText = dom.query.guessText(guessBounds);
+              } else {
+                cursorContent.innerText = dom.query.by.contiguousIndex(contiguousIndex)?.innerText ?? '';
               }
             },
             onBlur: () => {

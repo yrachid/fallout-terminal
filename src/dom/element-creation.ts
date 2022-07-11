@@ -1,5 +1,3 @@
-import { ColumnCoordinates } from "./query";
-
 type Span = {
   className: string;
   content: string;
@@ -22,11 +20,11 @@ const span = (config: Span) => {
   });
 
   if (config.onFocus !== undefined) {
-    span.addEventListener('focus', config.onFocus)
+    span.addEventListener("focus", config.onFocus);
   }
 
   if (config.onBlur !== undefined) {
-    span.addEventListener('blur', config.onBlur)
+    span.addEventListener("blur", config.onBlur);
   }
 
   span.appendChild(content);
@@ -35,14 +33,24 @@ const span = (config: Span) => {
 };
 
 type ElementConfig = {
-  className: string;
-  children: HTMLElement[];
+  className?: string;
+  children?: HTMLElement[];
+  text?: string;
 };
 
 const createElement = (name: string) => (config: ElementConfig) => {
   const element = document.createElement(name);
-  element.className = config.className;
-  element.append(...config.children);
+  if (config.className) {
+    element.className = config.className;
+  }
+
+  if (config.children) {
+    element.append(...config.children);
+  }
+
+  if (config.text) {
+    element.innerText = config.text;
+  }
 
   return element;
 };

@@ -36,6 +36,12 @@ const getActiveColumnCoordinates = () => {
   };
 };
 
+const cursorContentHolder = () =>
+  document.querySelector("#prompt-cursor-content") as HTMLElement;
+
+const selectedContent = () =>
+  document.querySelector("#selected-content") as HTMLElement;
+
 const guessText = (bounds: GuessBoundary) =>
   boundedRange(bounds)
     .map((i) => by.contiguousIndex(i))
@@ -52,4 +58,6 @@ export default {
     document.activeElement.classList.contains("terminal-column"),
   getActiveColumnCoordinates,
   guessText,
+  cursorContentHolder,
+  selectedContent,
 };

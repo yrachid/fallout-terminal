@@ -3,13 +3,6 @@ body {
   color: #8ee28e;
 }
 
-.terminal-line {
-  text-transform: uppercase;
-  font-weight: bold;
-  font-family: monospace;
-  font-size: x-large;
-}
-
 .terminal-column {
   padding: 1px;
 }
@@ -27,6 +20,9 @@ body {
 
 .terminal-block {
   padding: 50px;
+  /* Debugging */
+  /* margin: 5px;
+  border: solid 1px blue; */
 }
 
 .memory-address {
@@ -34,11 +30,43 @@ body {
 }
 
 #block-container {
-  padding: 0;
-  margin: 0;
+  padding: 5px;
   display: flex;
-  width: 100%;
-  height: 100%;
+  width: 70%;
+  height: 95%;
   flex-direction: row;
   justify-content: center;
+  /* Debugging */
+  /* margin: 5px;
+  border: solid 1px coral; */
+}
+
+#prompt-container {
+  padding: 5px;
+  width: 20%;
+  height: 95%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column-reverse;
+  /* Debugging */
+  /* margin: 5px;
+  border: solid 1px green; */
+}
+
+#prompt-cursor {
+  margin-bottom: 50px;
+}
+
+#container {
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: monospace;
+  font-size: x-large;
+  display: flex;
+  flex-direction: row;
+  height: 900px;
+  max-height: 100%;
+  /* Debugging */
+  /* margin: 5px;
+  border: solid 1px cyan; */
 }

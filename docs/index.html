@@ -1,15 +1,25 @@
-
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Fallout Terminal</title>
-    <link rel="stylesheet" href="index.css">
+    <link rel="stylesheet" href="index.css" />
   </head>
   <body>
-    <section id="block-container">
+    <section id="container">
+      <section id="block-container"></section>
+      <section id="prompt-container">
+        <p id="prompt-cursor">
+          <span>></span>
+          <span id="prompt-cursor-content"></span>
+        </p>
+        <section id="selected-content">
+        </section>
+      </section>
     </section>
   </body>
-  <script>var exports = {};</script>
+  <script>
+    var exports = {};
+  </script>
   <script src="./terminal.js" charset="utf-8"></script>
 </html>
