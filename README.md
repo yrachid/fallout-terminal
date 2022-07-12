@@ -15,7 +15,7 @@
 <br>
 
 <img
-    src = 'Resources/Banner.png'
+    src = 'Resources/Preview.png'
     width = 500
 />
 
