@@ -1,7 +1,7 @@
 
 # Fallout Terminal
 
-<img src="./example.png" width=500 height=450>
+<img src="./screenshot.png" width=500 height=450>
 
 An attempt of emulating Fallout's terminal minigames using HTML, CSS, and TS.
 
