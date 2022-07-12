@@ -28,3 +28,9 @@ Steps:
 - Generate text for each line with special characters only
 - Make each character selectable
 - Implement keyboard navigation
+
+
+### Credits
+
+CRT Flickering animation:
+- http://aleclownes.com/2017/02/01/crt-display.html
