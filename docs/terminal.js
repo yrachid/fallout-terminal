@@ -86,6 +86,7 @@ const cursorContentHolder = () => document.querySelector("#prompt-cursor-content
 const promptHistory = () => document.querySelector("#prompt-history");
 const attemptCounter = () => document.querySelector("#number-of-attempts");
 const attemptsDisplay = () => document.querySelector("#attempt-squares");
+const lockoutWarning = () => document.querySelector("#lockout-warning");
 const guessText = (bounds) => boundedRange(bounds)
     .map((i) => by.contiguousIndex(i))
     .map((column) => column?.innerText)
@@ -103,7 +104,8 @@ var query = {
     promptHistory,
     textAt,
     attemptCounter,
-    attemptsDisplay
+    attemptsDisplay,
+    lockoutWarning,
 };
 
 const span = (config) => {
@@ -160,11 +162,19 @@ const setAttempts = (attempts) => {
     attemptsDisplay.innerText = range(attempts, () => "■").join(" ");
 };
 const lockTerminal = () => {
-    document.body.innerHTML = "<h1>You have been locked out.</h1>";
+    document.body.innerHTML = `
+  <div id="lockout-message-container">
+    <h1>You have been locked out</h1>
+    <h2>Refresh to retry</h2>
+  </div>
+  `;
 };
 const decrementAttempts = () => {
     const numberOfAttempts = query.attemptCounter();
     const currentAttempts = parseInt(numberOfAttempts.dataset.attempts ?? "0");
+    if (currentAttempts === 2) {
+        query.lockoutWarning().classList.toggle("hidden");
+    }
     if (currentAttempts <= 1) {
         lockTerminal();
     }

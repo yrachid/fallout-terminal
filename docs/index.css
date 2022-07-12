@@ -1,109 +1,9 @@
-/*
-CRT flickering animation credits to:
-http://aleclownes.com/2017/02/01/crt-display.html
-*/
-@keyframes flicker {
-  0% {
-    opacity: 0.27861;
-  }
-  5% {
-    opacity: 0.34769;
-  }
-  10% {
-    opacity: 0.23604;
-  }
-  15% {
-    opacity: 0.90626;
-  }
-  20% {
-    opacity: 0.18128;
-  }
-  25% {
-    opacity: 0.83891;
-  }
-  30% {
-    opacity: 0.65583;
-  }
-  35% {
-    opacity: 0.67807;
-  }
-  40% {
-    opacity: 0.26559;
-  }
-  45% {
-    opacity: 0.84693;
-  }
-  50% {
-    opacity: 0.96019;
-  }
-  55% {
-    opacity: 0.08594;
-  }
-  60% {
-    opacity: 0.20313;
-  }
-  65% {
-    opacity: 0.71988;
-  }
-  70% {
-    opacity: 0.53455;
-  }
-  75% {
-    opacity: 0.37288;
-  }
-  80% {
-    opacity: 0.71428;
-  }
-  85% {
-    opacity: 0.70419;
-  }
-  90% {
-    opacity: 0.7003;
-  }
-  95% {
-    opacity: 0.36108;
-  }
-  100% {
-    opacity: 0.24387;
-  }
-}
-
-body::after {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: rgba(18, 16, 16, 0.1);
-  opacity: 0;
-  z-index: 2;
-  pointer-events: none;
-  animation: flicker 0.5s infinite;
-}
-
-body::before {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-    linear-gradient(
-      90deg,
-      rgba(255, 0, 0, 0.06),
-      rgba(0, 255, 0, 0.02),
-      rgba(0, 0, 255, 0.06)
-    );
-  z-index: 2;
-  background-size: 100% 2px, 3px 100%;
-  pointer-events: none;
+html {
+  height: 95%;
 }
 
 body {
+  height: 95%;
   background-color: #031c00;
   color: #8ee28e;
   text-transform: uppercase;
@@ -111,8 +11,6 @@ body {
   font-family: monospace;
   font-size: x-large;
   letter-spacing: 5px;
-  text-shadow: 2.6208764473832513px 0 1px rgba(0, 30, 255, 0.5),
-    -2.6208764473832513px 0 1px rgba(255, 0, 80, 0.3), 0 0 3px;
 }
 
 p {
@@ -145,16 +43,15 @@ p {
   flex-direction: row;
   height: 760px;
   /* Debugging */
-  margin: 5px;
-  /* border: solid 1px cyan; */
+  /* margin: 5px;
+  border: solid 1px cyan; */
 }
 
 #header {
-  padding: 25px;
+  padding: 0 25px 0 25px;
   margin-bottom: 30px;
-  /* height: 120px; */
+   margin: 0 5px 5px 5px;
   /* Debugging */
-  margin: 5px;
   /* border: solid 1px rebeccapurple; */
 }
 
@@ -162,13 +59,13 @@ p {
   padding-left: 25px;
   padding-right: 25px;
   height: 95%;
+  margin: 5px;
   /* Debugging */
-  /* margin: 5px; */
   /* border: solid 1px blue; */
 }
 
 #prompt-container {
-  width: 20%;
+  width: 25%;
   height: 95%;
   overflow: hidden;
   display: flex;
@@ -179,6 +76,30 @@ p {
   /* border: solid 1px green; */
 }
 
+#lockout-message-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
 #prompt-cursor {
   margin-bottom: 25px;
 }
+
+.hidden {
+  visibility: hidden;
+}
+
+#lockout-warning {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+

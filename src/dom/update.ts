@@ -31,12 +31,21 @@ const setAttempts = (attempts: number) => {
 };
 
 const lockTerminal = () => {
-  document.body.innerHTML = "<h1>You have been locked out.</h1>";
+  document.body.innerHTML = `
+  <div id="lockout-message-container">
+    <h1>You have been locked out</h1>
+    <h2>Refresh to retry</h2>
+  </div>
+  `;
 };
 
 const decrementAttempts = () => {
   const numberOfAttempts = query.attemptCounter();
   const currentAttempts = parseInt(numberOfAttempts.dataset.attempts ?? "0");
+
+  if (currentAttempts === 2) {
+    query.lockoutWarning().classList.toggle("hidden");
+  }
 
   if (currentAttempts <= 1) {
     lockTerminal();
