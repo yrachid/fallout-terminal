@@ -92,7 +92,7 @@ const textAt = (contiguousIndex) => by.contiguousIndex(contiguousIndex)?.innerTe
 var query = {
     by,
     firstColumn: () => document.querySelector(".terminal-column"),
-    terminalContainer: () => document.querySelector("#block-container"),
+    terminalContainer: () => document.querySelector("#container"),
     isActiveElementATerminalColumn: () => document.activeElement &&
         document.activeElement.classList.contains("terminal-column"),
     getActiveColumnCoordinates,
@@ -6927,7 +6927,7 @@ const getMemoryDump = (dumpSize, securityLevel) => {
     const garbage = range(garbageSize, () => rng.garbage()).join("");
     // TODO: Improve guess distribution logic
     const groupOffset = Math.floor(garbageSize / (securityLevel.passphrasesDumped + 1));
-    const guessIndices = range(securityLevel.passphrasesDumped, (i) => groupOffset * i + 1).map((offset) => {
+    const guessIndices = range(securityLevel.passphrasesDumped, (i) => groupOffset * i + (i + 1)).map((offset) => {
         const nextIndex = rng.randomWithin(groupOffset - securityLevel.passphraseLength) + offset;
         return Math.min(nextIndex, garbageSize - securityLevel.passphraseLength);
     });
@@ -6937,11 +6937,14 @@ const getMemoryDump = (dumpSize, securityLevel) => {
         start: index,
         end: index + (securityLevel.passphraseLength - 1),
     }));
+    const passphraseIndex = rng.randomItemOf(guessIndices);
     const getGuessBoundary = (index) => guessBoundaries.find(({ start, end }) => index >= start && index <= end);
+    const matchesPassphrase = (bounds) => bounds.start === passphraseIndex;
     return {
         guessIndices,
         dumpedContent,
         getGuessBoundary,
+        matchesPassphrase
     };
 };
 
@@ -6997,7 +7000,8 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
 }));
 const firstBlockRows = buildBlockOfRows(matrix.rowsPerBlock.firstBlock, 0);
 const secondBlockRows = buildBlockOfRows(matrix.rowsPerBlock.secondBlock, 1);
-dom.query.terminalContainer()?.append(dom.creation.section({
+dom.query.terminalContainer()
+    ?.prepend(dom.creation.section({
     className: "terminal-block",
     children: firstBlockRows,
 }), dom.creation.section({

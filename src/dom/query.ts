@@ -55,7 +55,7 @@ export default {
   by,
   firstColumn: () => document.querySelector(".terminal-column") as HTMLElement,
   terminalContainer: () =>
-    document.querySelector("#block-container") as HTMLElement,
+    document.querySelector("#container") as HTMLElement,
   isActiveElementATerminalColumn: () =>
     document.activeElement &&
     document.activeElement.classList.contains("terminal-column"),
