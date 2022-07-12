@@ -80,4 +80,5 @@ dom.query.terminalContainer()
 );
 
 input.registerInputHandlers(terminalDimensions, memoryDump);
+dom.update.setAttempts(4);
 dom.query.firstColumn().focus();

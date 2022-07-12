@@ -42,6 +42,12 @@ const cursorContentHolder = () =>
 const promptHistory = () =>
   document.querySelector("#prompt-history") as HTMLElement;
 
+const attemptCounter = () => 
+  document.querySelector("#number-of-attempts") as HTMLElement;
+
+const attemptsDisplay = () =>
+  document.querySelector("#attempt-squares") as HTMLElement;
+
 const guessText = (bounds: GuessBoundary) =>
   boundedRange(bounds)
     .map((i) => by.contiguousIndex(i))
@@ -64,4 +70,6 @@ export default {
   cursorContentHolder,
   promptHistory,
   textAt,
+  attemptCounter,
+  attemptsDisplay
 };

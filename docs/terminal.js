@@ -84,6 +84,8 @@ const getActiveColumnCoordinates = () => {
 };
 const cursorContentHolder = () => document.querySelector("#prompt-cursor-content");
 const promptHistory = () => document.querySelector("#prompt-history");
+const attemptCounter = () => document.querySelector("#number-of-attempts");
+const attemptsDisplay = () => document.querySelector("#attempt-squares");
 const guessText = (bounds) => boundedRange(bounds)
     .map((i) => by.contiguousIndex(i))
     .map((column) => column?.innerText)
@@ -100,6 +102,8 @@ var query = {
     cursorContentHolder,
     promptHistory,
     textAt,
+    attemptCounter,
+    attemptsDisplay
 };
 
 const span = (config) => {
@@ -136,7 +140,8 @@ const createElement = (name) => (config) => {
 };
 const p = createElement("p");
 const section = createElement("section");
-var creation = { span, p, section };
+const h1 = createElement("h1");
+var creation = { span, p, section, h1 };
 
 const toggleColumnHighlight = (boundaries) => {
     boundedRange(boundaries).forEach((i) => query.by.contiguousIndex(i)?.classList.toggle("active-column"));
@@ -146,6 +151,30 @@ const setCursorText = (text) => {
 };
 const setCursorTextFromGarbage = (columnContiguousIndex) => setCursorText(query.textAt(columnContiguousIndex) ?? "");
 const setCursorTextFromGuess = (boundaries) => setCursorText(query.guessText(boundaries));
+/* TODO: Refactor attempt handling logic */
+const setAttempts = (attempts) => {
+    const numberOfAttempts = query.attemptCounter();
+    numberOfAttempts.dataset.attempts = `${attempts}`;
+    numberOfAttempts.innerText = `${attempts}`;
+    const attemptsDisplay = query.attemptsDisplay();
+    attemptsDisplay.innerText = range(attempts, () => "■").join(" ");
+};
+const lockTerminal = () => {
+    document.body.innerHTML = "<h1>You have been locked out.</h1>";
+};
+const decrementAttempts = () => {
+    const numberOfAttempts = query.attemptCounter();
+    const currentAttempts = parseInt(numberOfAttempts.dataset.attempts ?? "0");
+    if (currentAttempts <= 1) {
+        lockTerminal();
+    }
+    else {
+        numberOfAttempts.innerText = `${currentAttempts - 1}`;
+        numberOfAttempts.dataset.attempts = `${currentAttempts - 1}`;
+        const attemptsDisplay = query.attemptsDisplay();
+        attemptsDisplay.innerText = range(currentAttempts - 1, () => "■").join(" ");
+    }
+};
 const registerRejectedGuess = (boundaries) => {
     const promptHistory = query.promptHistory();
     const guessText = creation.p({
@@ -158,6 +187,7 @@ const registerRejectedGuess = (boundaries) => {
         text: `>Likeness=1.`,
     });
     promptHistory.append(guessText, feedback, likeness);
+    decrementAttempts();
 };
 const registerGarbageSelection = (contiguousIndex) => query.promptHistory().append(creation.p({
     text: `>${query.textAt(contiguousIndex)}`,
@@ -167,7 +197,9 @@ var update = {
     setCursorTextFromGarbage,
     setCursorTextFromGuess,
     registerRejectedGuess,
-    registerGarbageSelection
+    registerGarbageSelection,
+    setAttempts,
+    decrementAttempts,
 };
 
 var dom = {
@@ -6980,5 +7012,6 @@ dom.query.terminalContainer()
     children: secondBlockRows,
 }));
 input.registerInputHandlers(terminalDimensions, memoryDump);
+dom.update.setAttempts(4);
 dom.query.firstColumn().focus();
 //# sourceMappingURL=terminal.js.map
