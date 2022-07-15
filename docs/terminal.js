@@ -84,6 +84,9 @@ const getActiveColumnCoordinates = () => {
 };
 const cursorContentHolder = () => document.querySelector("#prompt-cursor-content");
 const promptHistory = () => document.querySelector("#prompt-history");
+const attemptCounter = () => document.querySelector("#number-of-attempts");
+const attemptsDisplay = () => document.querySelector("#attempt-squares");
+const lockoutWarning = () => document.querySelector("#lockout-warning");
 const guessText = (bounds) => boundedRange(bounds)
     .map((i) => by.contiguousIndex(i))
     .map((column) => column?.innerText)
@@ -92,7 +95,7 @@ const textAt = (contiguousIndex) => by.contiguousIndex(contiguousIndex)?.innerTe
 var query = {
     by,
     firstColumn: () => document.querySelector(".terminal-column"),
-    terminalContainer: () => document.querySelector("#block-container"),
+    terminalContainer: () => document.querySelector("#container"),
     isActiveElementATerminalColumn: () => document.activeElement &&
         document.activeElement.classList.contains("terminal-column"),
     getActiveColumnCoordinates,
@@ -100,6 +103,9 @@ var query = {
     cursorContentHolder,
     promptHistory,
     textAt,
+    attemptCounter,
+    attemptsDisplay,
+    lockoutWarning,
 };
 
 const span = (config) => {
@@ -136,7 +142,8 @@ const createElement = (name) => (config) => {
 };
 const p = createElement("p");
 const section = createElement("section");
-var creation = { span, p, section };
+const h1 = createElement("h1");
+var creation = { span, p, section, h1 };
 
 const toggleColumnHighlight = (boundaries) => {
     boundedRange(boundaries).forEach((i) => query.by.contiguousIndex(i)?.classList.toggle("active-column"));
@@ -146,6 +153,38 @@ const setCursorText = (text) => {
 };
 const setCursorTextFromGarbage = (columnContiguousIndex) => setCursorText(query.textAt(columnContiguousIndex) ?? "");
 const setCursorTextFromGuess = (boundaries) => setCursorText(query.guessText(boundaries));
+/* TODO: Refactor attempt handling logic */
+const setAttempts = (attempts) => {
+    const numberOfAttempts = query.attemptCounter();
+    numberOfAttempts.dataset.attempts = `${attempts}`;
+    numberOfAttempts.innerText = `${attempts}`;
+    const attemptsDisplay = query.attemptsDisplay();
+    attemptsDisplay.innerText = range(attempts, () => "■").join(" ");
+};
+const lockTerminal = () => {
+    document.body.innerHTML = `
+  <div id="lockout-message-container">
+    <h1>You have been locked out</h1>
+    <h2>Refresh to retry</h2>
+  </div>
+  `;
+};
+const decrementAttempts = () => {
+    const numberOfAttempts = query.attemptCounter();
+    const currentAttempts = parseInt(numberOfAttempts.dataset.attempts ?? "0");
+    if (currentAttempts === 2) {
+        query.lockoutWarning().classList.toggle("hidden");
+    }
+    if (currentAttempts <= 1) {
+        lockTerminal();
+    }
+    else {
+        numberOfAttempts.innerText = `${currentAttempts - 1}`;
+        numberOfAttempts.dataset.attempts = `${currentAttempts - 1}`;
+        const attemptsDisplay = query.attemptsDisplay();
+        attemptsDisplay.innerText = range(currentAttempts - 1, () => "■").join(" ");
+    }
+};
 const registerRejectedGuess = (boundaries) => {
     const promptHistory = query.promptHistory();
     const guessText = creation.p({
@@ -158,6 +197,7 @@ const registerRejectedGuess = (boundaries) => {
         text: `>Likeness=1.`,
     });
     promptHistory.append(guessText, feedback, likeness);
+    decrementAttempts();
 };
 const registerGarbageSelection = (contiguousIndex) => query.promptHistory().append(creation.p({
     text: `>${query.textAt(contiguousIndex)}`,
@@ -167,7 +207,9 @@ var update = {
     setCursorTextFromGarbage,
     setCursorTextFromGuess,
     registerRejectedGuess,
-    registerGarbageSelection
+    registerGarbageSelection,
+    setAttempts,
+    decrementAttempts,
 };
 
 var dom = {
@@ -277,7 +319,6 @@ var input = {
 };
 
 const passphrases = [
-    "aaron",
     "aback",
     "abaft",
     "abase",
@@ -936,7 +977,6 @@ const passphrases = [
     "bonce",
     "bonds",
     "boned",
-    "boner",
     "bones",
     "bongo",
     "bongs",
@@ -945,7 +985,6 @@ const passphrases = [
     "bonus",
     "bonza",
     "bonze",
-    "boobs",
     "booby",
     "booed",
     "books",
@@ -1607,7 +1646,6 @@ const passphrases = [
     "culls",
     "cults",
     "cumin",
-    "cunts",
     "cupid",
     "cuppa",
     "curbs",
@@ -1773,7 +1811,6 @@ const passphrases = [
     "diced",
     "dices",
     "dicey",
-    "dicks",
     "dicta",
     "didst",
     "diego",
@@ -1783,7 +1820,6 @@ const passphrases = [
     "dijon",
     "diked",
     "dikes",
-    "dildo",
     "dills",
     "dilly",
     "dimer",
@@ -1847,7 +1883,6 @@ const passphrases = [
     "domed",
     "domes",
     "donas",
-    "dongs",
     "donna",
     "donne",
     "donny",
@@ -1929,7 +1964,6 @@ const passphrases = [
     "drove",
     "drown",
     "drubs",
-    "drugs",
     "druid",
     "drums",
     "drunk",
@@ -2118,12 +2152,6 @@ const passphrases = [
     "erato",
     "erect",
     "ergot",
-    "erica",
-    "erich",
-    "erick",
-    "erika",
-    "ernie",
-    "ernst",
     "erode",
     "erred",
     "errol",
@@ -4036,7 +4064,6 @@ const passphrases = [
     "mores",
     "morin",
     "morns",
-    "moron",
     "morph",
     "morse",
     "moses",
@@ -4158,7 +4185,6 @@ const passphrases = [
     "needs",
     "needy",
     "negev",
-    "negro",
     "nehru",
     "neigh",
     "neill",
@@ -4187,8 +4213,6 @@ const passphrases = [
     "niffy",
     "nifty",
     "nigel",
-    "niger",
-    "nigga",
     "night",
     "nikki",
     "nikon",
@@ -4795,7 +4819,6 @@ const passphrases = [
     "pusey",
     "pushy",
     "pussy",
-    "putin",
     "putts",
     "putty",
     "pwned",
@@ -5322,7 +5345,6 @@ const passphrases = [
     "selim",
     "sells",
     "selma",
-    "semen",
     "semis",
     "sends",
     "senna",
@@ -6344,7 +6366,6 @@ const passphrases = [
     "tuxes",
     "twain",
     "twang",
-    "twats",
     "tweak",
     "tweed",
     "tween",
@@ -6801,7 +6822,6 @@ const passphrases = [
     "wyatt",
     "wyeth",
     "wylie",
-    "xcvii",
     "xenia",
     "xenon",
     "xerox",
@@ -6810,13 +6830,6 @@ const passphrases = [
     "xingu",
     "xrefs",
     "xterm",
-    "xviii",
-    "xxiii",
-    "xxvii",
-    "xxxii",
-    "xxxiv",
-    "xxxix",
-    "xxxvi",
     "xylem",
     "yabby",
     "yacht",
@@ -6927,7 +6940,7 @@ const getMemoryDump = (dumpSize, securityLevel) => {
     const garbage = range(garbageSize, () => rng.garbage()).join("");
     // TODO: Improve guess distribution logic
     const groupOffset = Math.floor(garbageSize / (securityLevel.passphrasesDumped + 1));
-    const guessIndices = range(securityLevel.passphrasesDumped, (i) => groupOffset * i + 1).map((offset) => {
+    const guessIndices = range(securityLevel.passphrasesDumped, (i) => groupOffset * i + (i + 1)).map((offset) => {
         const nextIndex = rng.randomWithin(groupOffset - securityLevel.passphraseLength) + offset;
         return Math.min(nextIndex, garbageSize - securityLevel.passphraseLength);
     });
@@ -6937,11 +6950,14 @@ const getMemoryDump = (dumpSize, securityLevel) => {
         start: index,
         end: index + (securityLevel.passphraseLength - 1),
     }));
+    const passphraseIndex = rng.randomItemOf(guessIndices);
     const getGuessBoundary = (index) => guessBoundaries.find(({ start, end }) => index >= start && index <= end);
+    const matchesPassphrase = (bounds) => bounds.start === passphraseIndex;
     return {
         guessIndices,
         dumpedContent,
         getGuessBoundary,
+        matchesPassphrase
     };
 };
 
@@ -6997,7 +7013,8 @@ const buildBlockOfRows = (rowContent, blockIndex) => rowContent.map((row, rowInd
 }));
 const firstBlockRows = buildBlockOfRows(matrix.rowsPerBlock.firstBlock, 0);
 const secondBlockRows = buildBlockOfRows(matrix.rowsPerBlock.secondBlock, 1);
-dom.query.terminalContainer()?.append(dom.creation.section({
+dom.query.terminalContainer()
+    ?.prepend(dom.creation.section({
     className: "terminal-block",
     children: firstBlockRows,
 }), dom.creation.section({
@@ -7005,5 +7022,6 @@ dom.query.terminalContainer()?.append(dom.creation.section({
     children: secondBlockRows,
 }));
 input.registerInputHandlers(terminalDimensions, memoryDump);
+dom.update.setAttempts(4);
 dom.query.firstColumn().focus();
 //# sourceMappingURL=terminal.js.map

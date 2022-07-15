@@ -22,6 +22,7 @@ export type GuessBoundary = {
 export type MemoryDump = {
   guessIndices: number[];
   dumpedContent: string;
+  matchesPassphrase: (bounds: GuessBoundary) => boolean;
   getGuessBoundary: (index: number) => GuessBoundary | undefined;
 };
 
@@ -58,7 +59,7 @@ export const getMemoryDump = (
 
   const guessIndices = range(
     securityLevel.passphrasesDumped,
-    (i) => groupOffset * i + 1
+    (i) => groupOffset * i + (i + 1)
   ).map((offset) => {
     const nextIndex =
       rng.randomWithin(groupOffset - securityLevel.passphraseLength) + offset;
@@ -76,12 +77,18 @@ export const getMemoryDump = (
     end: index + (securityLevel.passphraseLength - 1),
   }));
 
+  const passphraseIndex = rng.randomItemOf(guessIndices);
+
   const getGuessBoundary = (index: number) =>
     guessBoundaries.find(({ start, end }) => index >= start && index <= end);
+
+  const matchesPassphrase = (bounds: GuessBoundary) =>
+    bounds.start === passphraseIndex;
 
   return {
     guessIndices,
     dumpedContent,
     getGuessBoundary,
+    matchesPassphrase
   };
 };

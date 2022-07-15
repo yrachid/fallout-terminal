@@ -1,6 +1,22 @@
+html {
+  height: 95%;
+}
+
 body {
+  height: 95%;
   background-color: #031c00;
   color: #8ee28e;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-family: monospace;
+  font-size: x-large;
+  letter-spacing: 5px;
+}
+
+p {
+  margin: 3px;
+  font-size: 1.6em;
+  line-height: 38px;
 }
 
 .terminal-column {
@@ -18,55 +34,72 @@ body {
   outline: none;
 }
 
-.terminal-block {
-  padding: 50px;
-  /* Debugging */
-  /* margin: 5px;
-  border: solid 1px blue; */
-}
-
 .memory-address {
   margin-right: 15px;
 }
 
-#block-container {
-  padding: 5px;
-  display: flex;
-  width: 70%;
-  height: 95%;
-  flex-direction: row;
-  justify-content: center;
-  /* Debugging */
-  /* margin: 5px;
-  border: solid 1px coral; */
-}
-
-#prompt-container {
-  padding: 5px;
-  width: 20%;
-  height: 95%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column-reverse;
-  /* Debugging */
-  /* margin: 5px;
-  border: solid 1px green; */
-}
-
-#prompt-cursor {
-  margin-bottom: 50px;
-}
-
 #container {
-  text-transform: uppercase;
-  font-weight: bold;
-  font-family: monospace;
-  font-size: x-large;
   display: flex;
   flex-direction: row;
-  height: 900px;
-  max-height: 100%;
+  height: 760px;
   /* Debugging */
   /* margin: 5px;
   border: solid 1px cyan; */
 }
+
+#header {
+  padding: 0 25px 0 25px;
+  margin-bottom: 30px;
+   margin: 0 5px 5px 5px;
+  /* Debugging */
+  /* border: solid 1px rebeccapurple; */
+}
+
+.terminal-block {
+  padding-left: 25px;
+  padding-right: 25px;
+  height: 95%;
+  margin: 5px;
+  /* Debugging */
+  /* border: solid 1px blue; */
+}
+
+#prompt-container {
+  width: 25%;
+  height: 95%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column-reverse;
+  margin: 5px;
+  padding-left: 25px;
+  /* Debugging */
+  /* border: solid 1px green; */
+}
+
+#lockout-message-container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+#prompt-cursor {
+  margin-bottom: 25px;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+#lockout-warning {
+  animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
+}
+

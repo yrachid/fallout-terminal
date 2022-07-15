@@ -67,7 +67,8 @@ const buildBlockOfRows = (rowContent: TerminalRow[], blockIndex: number) =>
 const firstBlockRows = buildBlockOfRows(matrix.rowsPerBlock.firstBlock, 0);
 const secondBlockRows = buildBlockOfRows(matrix.rowsPerBlock.secondBlock, 1);
 
-dom.query.terminalContainer()?.append(
+dom.query.terminalContainer()
+?.prepend(
   dom.creation.section({
     className: "terminal-block",
     children: firstBlockRows,
@@ -79,4 +80,5 @@ dom.query.terminalContainer()?.append(
 );
 
 input.registerInputHandlers(terminalDimensions, memoryDump);
+dom.update.setAttempts(4);
 dom.query.firstColumn().focus();

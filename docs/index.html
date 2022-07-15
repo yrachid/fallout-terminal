@@ -4,17 +4,29 @@
     <meta charset="utf-8" />
     <title>Fallout Terminal</title>
     <link rel="stylesheet" href="index.css" />
+    <link rel="stylesheet" href="crt-animation.css" />
   </head>
   <body>
+    <section id="header">
+      <p id="robco-title">
+        RobCo Industries (TM) Termlink Protocol
+      </p>
+      <p id="lockout-warning" class="hidden">
+        !!! Warning: Lockout imminent !!!
+      </p>
+      <p id="counter">
+        <span id="number-of-attempts" data-attempts="4"></span>
+        <span>Attempt(s) left:</span>
+        <span id="attempt-squares">■ ■ ■ ■</span>
+      </p>
+    </section>
     <section id="container">
-      <section id="block-container"></section>
       <section id="prompt-container">
         <p id="prompt-cursor">
           <span>></span>
           <span id="prompt-cursor-content"></span>
         </p>
-        <section id="prompt-history">
-        </section>
+        <section id="prompt-history"></section>
       </section>
     </section>
   </body>

@@ -42,6 +42,15 @@ const cursorContentHolder = () =>
 const promptHistory = () =>
   document.querySelector("#prompt-history") as HTMLElement;
 
+const attemptCounter = () =>
+  document.querySelector("#number-of-attempts") as HTMLElement;
+
+const attemptsDisplay = () =>
+  document.querySelector("#attempt-squares") as HTMLElement;
+
+const lockoutWarning = () =>
+  document.querySelector("#lockout-warning") as HTMLElement;
+
 const guessText = (bounds: GuessBoundary) =>
   boundedRange(bounds)
     .map((i) => by.contiguousIndex(i))
@@ -54,8 +63,7 @@ const textAt = (contiguousIndex: number) =>
 export default {
   by,
   firstColumn: () => document.querySelector(".terminal-column") as HTMLElement,
-  terminalContainer: () =>
-    document.querySelector("#block-container") as HTMLElement,
+  terminalContainer: () => document.querySelector("#container") as HTMLElement,
   isActiveElementATerminalColumn: () =>
     document.activeElement &&
     document.activeElement.classList.contains("terminal-column"),
@@ -64,4 +72,7 @@ export default {
   cursorContentHolder,
   promptHistory,
   textAt,
+  attemptCounter,
+  attemptsDisplay,
+  lockoutWarning,
 };
