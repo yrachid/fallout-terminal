@@ -1,36 +1,45 @@
 
+<div align = center>
+
 # Fallout Terminal
 
-<img src="./screenshot.png" width=500 height=450>
+*An attempt of emulating Fallout's terminal* <br>
+*mini-game using HTML, CSS and TypeScript.*
 
-An attempt of emulating Fallout's terminal minigames using HTML, CSS, and TS.
+<br>
+<br>
 
-Check it live at [Github Pages](https://yrachid.github.io/fallout-terminal/).
+[![Button Demo]][Demo]   [![Button Specification]][Specification]
 
-Guidelines:
+<br>
+<br>
 
-- Rows: 17
-- Line Length: 12
-- Selecting matching brackets will either remove a dud or restore attempts
-- Matching brackets will always be on the same line
-- Guesses may be broken into two lines
-- Navigation should be circular:
-  - Moving down from the last line should go back to the top line
-  - Moving up from the top line should go down to the last line
-  - Moving left from the start of line should go to the end of previous line
-  - Moving right from end of line should go to the start of next line
-- Guesses have different length depending on how secure the terminal is
+<img
+    src = 'Resources/Preview.png'
+    width = 500
+/>
 
-Steps:
+</div>
 
-- Generate a random "memory address"
-- Determine special characters set
-- Generate text for each line with special characters only
-- Make each character selectable
-- Implement keyboard navigation
+<br>
+<br>
+
+## Credits
+
+- **[CRT Flickering Animation]**
+
+<br>
 
 
-### Credits
+<!----------------------------------------------------------------------------->
 
-CRT Flickering animation:
-- http://aleclownes.com/2017/02/01/crt-display.html
+[CRT Flickering Animation]: http://aleclownes.com/2017/02/01/crt-display.html
+[Specification]: Documentation/Specification.md
+
+[Demo]: https://yrachid.github.io/fallout-terminal/
+
+
+<!---------------------------------[ Buttons ]--------------------------------->
+
+[Button Specification]: https://img.shields.io/badge/Specification-A5915F?style=for-the-badge&logoColor=white&logo=BookStack
+[Button Demo]: https://img.shields.io/badge/Demo-4c854a?style=for-the-badge&logoColor=white&logo=AppleArcade
