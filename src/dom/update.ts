@@ -39,6 +39,14 @@ const lockTerminal = () => {
   `;
 };
 
+const unlockTerminal = () => {
+  document.body.innerHTML = `
+  <div id="lockout-message-container">
+    <h1>Congratulations?</h1>
+  </div>
+  `;
+};
+
 const decrementAttempts = () => {
   const numberOfAttempts = query.attemptCounter();
   const currentAttempts = parseInt(numberOfAttempts.dataset.attempts ?? "0");
@@ -59,7 +67,7 @@ const decrementAttempts = () => {
   }
 };
 
-const registerRejectedGuess = (boundaries: GuessBoundary) => {
+const registerRejectedGuess = (boundaries: GuessBoundary, likeness: number) => {
   const promptHistory = query.promptHistory();
 
   const guessText = creation.p({
@@ -68,11 +76,11 @@ const registerRejectedGuess = (boundaries: GuessBoundary) => {
   const feedback = creation.p({
     text: `>Entry denied.`,
   });
-  const likeness = creation.p({
-    text: `>Likeness=1.`,
+  const likenessFeedback = creation.p({
+    text: `>Likeness=${likeness}.`,
   });
 
-  promptHistory.append(guessText, feedback, likeness);
+  promptHistory.append(guessText, feedback, likenessFeedback);
   decrementAttempts();
 };
 
@@ -91,4 +99,5 @@ export default {
   registerGarbageSelection,
   setAttempts,
   decrementAttempts,
+  unlockTerminal
 };

@@ -59,6 +59,4 @@ const p = createElement("p");
 
 const section = createElement("section");
 
-const h1 = createElement("h1");
-
-export default { span, p, section, h1 };
+export default { span, p, section };

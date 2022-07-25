@@ -19,11 +19,20 @@ export type GuessBoundary = {
   end: number;
 };
 
+export const enum MatchStatus {
+  SUCCESSFUL = "SUCCESSFUL",
+  FAILED = "FAILED",
+}
+
+export type MatchResult =
+  | { status: MatchStatus.SUCCESSFUL }
+  | { status: MatchStatus.FAILED; similarity: number };
+
 export type MemoryDump = {
   guessIndices: number[];
   dumpedContent: string;
-  matchesPassphrase: (bounds: GuessBoundary) => boolean;
   getGuessBoundary: (index: number) => GuessBoundary | undefined;
+  passphraseMatch: (boundaries: GuessBoundary) => MatchResult;
 };
 
 const generateGuesses = (guessCount: number) => {
@@ -79,16 +88,36 @@ export const getMemoryDump = (
 
   const passphraseIndex = rng.randomItemOf(guessIndices);
 
+  const passphraseContent = dumpedContent.substring(
+    passphraseIndex,
+    securityLevel.passphraseLength + passphraseIndex
+  );
+
   const getGuessBoundary = (index: number) =>
     guessBoundaries.find(({ start, end }) => index >= start && index <= end);
 
-  const matchesPassphrase = (bounds: GuessBoundary) =>
-    bounds.start === passphraseIndex;
+  const passphraseMatch = (bounds: GuessBoundary): MatchResult => {
+    const guessContent = dumpedContent.substring(bounds.start, bounds.end + 1);
+    console.log("Debug - Passphrase: ", passphraseContent);
+    console.log("Debug - Guess: ", guessContent);
+
+    let similarity = 0;
+
+    for (let i = 0; i < securityLevel.passphraseLength; i++) {
+      if (guessContent[i] === passphraseContent[i]) {
+        similarity++;
+      }
+    }
+
+    return similarity === securityLevel.passphraseLength
+      ? { status: MatchStatus.SUCCESSFUL }
+      : { status: MatchStatus.FAILED, similarity };
+  };
 
   return {
     guessIndices,
     dumpedContent,
     getGuessBoundary,
-    matchesPassphrase
+    passphraseMatch,
   };
 };

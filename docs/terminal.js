@@ -142,8 +142,7 @@ const createElement = (name) => (config) => {
 };
 const p = createElement("p");
 const section = createElement("section");
-const h1 = createElement("h1");
-var creation = { span, p, section, h1 };
+var creation = { span, p, section };
 
 const toggleColumnHighlight = (boundaries) => {
     boundedRange(boundaries).forEach((i) => query.by.contiguousIndex(i)?.classList.toggle("active-column"));
@@ -169,6 +168,13 @@ const lockTerminal = () => {
   </div>
   `;
 };
+const unlockTerminal = () => {
+    document.body.innerHTML = `
+  <div id="lockout-message-container">
+    <h1>Congratulations?</h1>
+  </div>
+  `;
+};
 const decrementAttempts = () => {
     const numberOfAttempts = query.attemptCounter();
     const currentAttempts = parseInt(numberOfAttempts.dataset.attempts ?? "0");
@@ -185,7 +191,7 @@ const decrementAttempts = () => {
         attemptsDisplay.innerText = range(currentAttempts - 1, () => "■").join(" ");
     }
 };
-const registerRejectedGuess = (boundaries) => {
+const registerRejectedGuess = (boundaries, likeness) => {
     const promptHistory = query.promptHistory();
     const guessText = creation.p({
         text: `>${query.guessText(boundaries)}`,
@@ -193,10 +199,10 @@ const registerRejectedGuess = (boundaries) => {
     const feedback = creation.p({
         text: `>Entry denied.`,
     });
-    const likeness = creation.p({
-        text: `>Likeness=1.`,
+    const likenessFeedback = creation.p({
+        text: `>Likeness=${likeness}.`,
     });
-    promptHistory.append(guessText, feedback, likeness);
+    promptHistory.append(guessText, feedback, likenessFeedback);
     decrementAttempts();
 };
 const registerGarbageSelection = (contiguousIndex) => query.promptHistory().append(creation.p({
@@ -210,6 +216,7 @@ var update = {
     registerGarbageSelection,
     setAttempts,
     decrementAttempts,
+    unlockTerminal
 };
 
 var dom = {
@@ -223,9 +230,15 @@ const contentSelection = (memoryDump) => {
         const coordinates = dom.query.getActiveColumnCoordinates();
         const boundaries = memoryDump.getGuessBoundary(coordinates.contiguousIndex);
         boundaries
-            ? dom.update.registerRejectedGuess(boundaries)
+            ? registerGuess(boundaries, memoryDump)
             : dom.update.registerGarbageSelection(coordinates.contiguousIndex);
     };
+    function registerGuess(boundaries, memoryDump) {
+        const matchResult = memoryDump.passphraseMatch(boundaries);
+        matchResult.status === "FAILED" /* MatchStatus.FAILED */
+            ? dom.update.registerRejectedGuess(boundaries, matchResult.similarity)
+            : dom.update.unlockTerminal();
+    }
 };
 
 const movement = (terminalDimensions, memoryDump) => {
@@ -6951,13 +6964,27 @@ const getMemoryDump = (dumpSize, securityLevel) => {
         end: index + (securityLevel.passphraseLength - 1),
     }));
     const passphraseIndex = rng.randomItemOf(guessIndices);
+    const passphraseContent = dumpedContent.substring(passphraseIndex, securityLevel.passphraseLength + passphraseIndex);
     const getGuessBoundary = (index) => guessBoundaries.find(({ start, end }) => index >= start && index <= end);
-    const matchesPassphrase = (bounds) => bounds.start === passphraseIndex;
+    const passphraseMatch = (bounds) => {
+        const guessContent = dumpedContent.substring(bounds.start, bounds.end + 1);
+        console.log("Debug - Passphrase: ", passphraseContent);
+        console.log("Debug - Guess: ", guessContent);
+        let similarity = 0;
+        for (let i = 0; i < securityLevel.passphraseLength; i++) {
+            if (guessContent[i] === passphraseContent[i]) {
+                similarity++;
+            }
+        }
+        return similarity === securityLevel.passphraseLength
+            ? { status: "SUCCESSFUL" /* MatchStatus.SUCCESSFUL */ }
+            : { status: "FAILED" /* MatchStatus.FAILED */, similarity };
+    };
     return {
         guessIndices,
         dumpedContent,
         getGuessBoundary,
-        matchesPassphrase
+        passphraseMatch,
     };
 };
 
